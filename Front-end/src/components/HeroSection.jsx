@@ -2,7 +2,7 @@ import React from 'react'
 import { Search } from "lucide-react";
 import image from "../ttt.jpg";
 const MarketTicker = ({ icon, symbol, value, change }) => (
-  <div className="flex items-center bg-[#4c4f55] rounded-lg px-4 py-2 space-x-2 hover:bg-[#0c0e11] hover:cursor-pointer">
+  <div className="flex items-center bg-[#4c4f555d] rounded-lg px-4 py-2 space-x-2 hover:bg-[#0c0e117a] hover:cursor-pointer">
     {icon}
     <div className="flex items-center space-x-2">
       <span className="text-white font-medium">{symbol}</span>
