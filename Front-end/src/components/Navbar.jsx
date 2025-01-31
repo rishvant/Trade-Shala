@@ -4,8 +4,8 @@ import { useTrade } from "../context/context";
 const Navbar = () => {
   const trade = useTrade();
   const isLogin = trade.isLogin;
-    const setIsLogin = trade.setIsLogin;
-    
+  const setIsLogin = trade.setIsLogin;
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
@@ -15,12 +15,11 @@ const Navbar = () => {
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
-    };
-    
-    const handleLogout = () => {
-     
-      setIsLogin(false);
-    };
+  };
+
+  const handleLogout = () => {
+    setIsLogin(false);
+  };
 
   const toggleProfileMenu = () => {
     setIsProfileMenuOpen(!isProfileMenuOpen);
@@ -89,10 +88,10 @@ const Navbar = () => {
             News
           </Link>
           <Link
-            to="/brokers"
+            to="/contact"
             className="text-gray-300 hover:text-white transition-colors duration-300"
           >
-            Brokers
+            ContactUs
           </Link>
         </div>
 
