@@ -4,13 +4,15 @@ import express from "express";
 import http from "http";
 import connectDB from "./db/index.js";
 import stocksRoutes from "./routes/stocksRoutes.js";
-import authRoutes from './routes/authRoutes.js'
+import authRoutes from './routes/authRoutes.js';
+import cors from "cors";
 
 const PORT = process.env.PORT || 3000;
 
 const app = express();
 connectDB();
 app.use(express.json());
+app.use(cors());
 
 app.use("/api/stocks", stocksRoutes);
 
