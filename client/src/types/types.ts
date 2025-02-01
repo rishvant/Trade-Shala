@@ -11,3 +11,8 @@ export interface MarketTickerProps {
   value: string; // Type for the value (assuming it's a string)
   change: number; // Type for the change percentage
 }
+
+export interface StockName {
+  shortName: string;
+  fullName: string;
+}

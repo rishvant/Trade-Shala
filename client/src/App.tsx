@@ -18,7 +18,7 @@ function App() {
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/wallet" element={<WalletPage />} />
         <Route path="/news" element={<News />} />
-        <Route path="/stock" element={<Stock />} />
+        <Route path="/stock/:stockName" element={<Stock />} />
       </Routes>
     </Router>
   );

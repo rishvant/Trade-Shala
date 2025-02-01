@@ -2,41 +2,66 @@ import { useState, useEffect } from "react";
 import { Clock, ArrowUpDown } from "lucide-react";
 import StockChart from "../components/StockChart";
 import TradingPanel from "../components/TradingPanel";
-import axios from "axios";
+import { fetchStockData, searchStockData } from "../services/stockService";
+import { useParams } from "react-router-dom";
+import { StockName } from "../types/types";
 
-// Transform candle data to our format
 const transformCandleData = (data: any) => {
   if (!data?.candles) return [];
 
   return data.candles
     .map((candle: any[]) => ({
       time: candle[0],
-      price: candle[4], // Using close price
+      price: candle[4],
       volume: candle[5],
     }))
-    .reverse(); // Reverse to get chronological order
+    .reverse();
 };
 
 function Stock() {
+  const { stockName } = useParams<{ stockName: any }>();
   const [timeRange, setTimeRange] = useState<string>("1D");
   const [stockData, setStockData] = useState<any[]>([]);
   const [marketStatus, setMarketStatus] = useState<string>("closed");
+  const [stockNameData, setStockNameData] = useState<StockName>({
+    shortName: "",
+    fullName: "",
+  });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/api/stocks/intraday/RELIANCE"); // Fetch data for RELIANCE
-        console.log(response)
+        const response = await fetchStockData(stockName);
+        console.log(response);
         const transformedData = transformCandleData(response.data.data);
         setStockData(transformedData);
-        setMarketStatus(response.data.marketStatus); // Assuming the response includes marketStatus
+        setMarketStatus(response.data.marketStatus);
       } catch (error) {
         console.error("Error fetching stock data:", error);
       }
     };
 
     fetchData();
-  }, []);
+  }, [stockName]);
+
+  // New useEffect to fetch stock name
+  useEffect(() => {
+    const fetchStockNameData = async () => {
+      try {
+        const response = await searchStockData(stockName);
+        const shortName = Object.keys(response.data)[0];
+        const fullName = response.data[shortName];
+        setStockNameData({
+          shortName,
+          fullName,
+        });
+      } catch (error) {
+        console.error("Error fetching stock name:", error);
+      }
+    };
+
+    fetchStockNameData();
+  }, [stockName]);
 
   // Update data periodically if market is open
   useEffect(() => {
@@ -107,8 +132,10 @@ function Stock() {
             <div className="bg-white p-6 rounded-lg shadow-lg">
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h2 className="text-2xl font-bold">AAPL</h2>
-                  <p className="text-gray-600">Apple Inc.</p>
+                  <h2 className="text-2xl font-bold">
+                    {stockNameData.shortName}
+                  </h2>
+                  <p className="text-gray-600">{stockNameData.fullName}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-3xl font-bold">

@@ -7,8 +7,8 @@ import { MarketTickerProps } from "../types/types";
 const MarketTicker: React.FC<MarketTickerProps> = ({
   icon,
   symbol,
-  value,
-  change,
+  value = "0",
+  change = 0,
 }) => (
   <div className="flex items-center bg-[#4c4f555d] rounded-lg px-4 py-2 space-x-2 hover:bg-[#0c0e117a] hover:cursor-pointer">
     {icon}

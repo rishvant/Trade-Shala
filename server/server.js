@@ -3,9 +3,10 @@ dotenv.config();
 import express from "express";
 import http from "http";
 import connectDB from "./db/index.js";
+import cors from "cors";
 import stocksRoutes from "./routes/stocksRoutes.js";
 import authRoutes from './routes/authRoutes.js';
-import cors from "cors";
+import orderRoutes from './routes/orderRoutes.js';
 
 const PORT = process.env.PORT || 3000;
 
@@ -15,9 +16,10 @@ app.use(express.json());
 app.use(cors());
 
 app.use("/api/stocks", stocksRoutes);
+app.use("/api", orderRoutes);
+app.use('/api/v1', authRoutes);
 
-app.use('/api/v1',authRoutes);
-app.get('/',(req,res)=>{
+app.get('/', (req, res) => {
     res.send(`<h1>this is server</h1>`);
 })
 const server = http.createServer(app);

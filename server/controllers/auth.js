@@ -3,6 +3,8 @@ import OTP from "../models/Otp.Model.js";
 import twilio from "twilio";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { configDotenv } from "dotenv";
+configDotenv();
 
 // Twilio Configuration
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -12,32 +14,42 @@ const client = twilio(accountSid, authToken);
 
 // Generate OTP
 const generateOTP = async (req, res) => {
-    const { phoneNumber } = req.body;
+    try {
+        const { phoneNumber } = req.body;
 
-    if (!phoneNumber) {
-        return res.status(400).json({ message: "Phone number is required" });
+        if (!phoneNumber) {
+            return res.status(400).json({ message: "Phone number is required" });
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000);
+        const expiresAt = new Date(Date.now() + 5 * 60000);
+
+        // Store OTP in the database
+        await OTP.findOneAndUpdate(
+            { phoneNumber },
+            { otp, expiresAt },
+            { upsert: true, new: true }
+        );
+
+        // Send OTP via Twilio
+        const message = await client.messages.create({
+            body: `Your OTP code is: ${otp}. It will expire in 5 minutes.`,
+            from: twilioPhone,
+            to: phoneNumber
+        });
+
+        res.status(200).json({ message: "OTP sent successfully", otp: otp });
+    } catch (error) {
+        console.error("Error sending OTP:", error);
+        res.status(500).json({ message: "Failed to send OTP", error });
     }
-
-    const otp = Math.floor(100000 + Math.random() * 900000); // Generate 6-digit OTP
-    const expiresAt = new Date(Date.now() + 5 * 60000); // OTP expires in 5 minutes
-
-    await OTP.create({ phoneNumber, otp, expiresAt });
-
-    // Send OTP via Twilio
-    await client.messages.create({
-        body: `Your OTP is ${otp}`,
-        from: twilioPhone,
-        to: phoneNumber
-    });
-
-    res.status(200).json({ message: "OTP sent successfully" });
 };
 
 // Signup
 const signup = async (req, res) => {
-    const { name, phoneNumber, password } = req.body;
+    const { name, email, phoneNumber, password } = req.body;
 
-    if (!name || !phoneNumber || !password) {
+    if (!name || !email || !phoneNumber || !password) {
         return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -47,7 +59,7 @@ const signup = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, phoneNumber, password: hashedPassword });
+    const user = await User.create({ name, email, phoneNumber, password: hashedPassword });
 
     res.status(201).json({ message: "User registered successfully", user });
 };
