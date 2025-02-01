@@ -1,4 +1,4 @@
-import OTP from "../models/otpModel.js"; // OTP schema to store OTPs
+import OTP from "../models/Otp.Model.js"; // OTP schema to store OTPs
 
 const verifyOTP = async (req, res, next) => {
     const { phoneNumber, otp } = req.body;
