@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useTrade } from "../context/context";
+import { IoWalletSharp } from "react-icons/io5";
 const Navbar = () => {
   const trade = useTrade();
   const isLogin = trade.isLogin;
@@ -114,22 +115,31 @@ const Navbar = () => {
               {isProfileMenuOpen && (
                 <div
                   ref={profileMenuRef}
-                  className="absolute right-0 mt-2 bg-[#1e222d] text-gray-300 rounded-lg shadow-lg w-48 z-10"
+                  className="absolute right-0 mt-2 bg-[#1e222d] text-gray-300 rounded-lg shadow-lg w-36 z-10"
                 >
                   <ul className="space-y-2 p-2">
                     <li>
-                      <button className="w-full text-left py-2 px-4 hover:bg-[#2a2d39] transition-colors duration-200">
-                        <Link to={"/login"}>Sign In</Link>
+                      <button className="w-full flex items-center space-x-2 text-left py-2 px-4 hover:bg-[#2a2d39] transition-colors duration-200 rounded-md">
+                        <IoWalletSharp className="text-sm" />
+                        <Link to="/wallet" className="text-sm font-medium">
+                          Wallet
+                        </Link>
                       </button>
                     </li>
                     <li>
-                      <button className="w-full text-left py-2 px-4 hover:bg-[#2a2d39] transition-colors duration-200">
-                        What's New
+                      <button className="w-full flex items-center space-x-2 text-left py-2 px-4 hover:bg-[#2a2d39] transition-colors duration-200 rounded-md">
+                        <IoWalletSharp className="text-sm" />
+                        <Link to="/wallet" className="text-sm font-medium">
+                          Orders
+                        </Link>
                       </button>
                     </li>
                     <li>
-                      <button className="w-full text-left py-2 px-4 hover:bg-[#2a2d39] transition-colors duration-200">
-                        More
+                      <button className="w-full flex items-center space-x-2 text-left py-2 px-4 hover:bg-[#2a2d39] transition-colors duration-200 rounded-md">
+                        <IoWalletSharp className="text-sm" />
+                        <Link to="/wallet" className="text-sm font-medium">
+                          Transactions
+                        </Link>
                       </button>
                     </li>
                   </ul>
@@ -207,10 +217,10 @@ const Navbar = () => {
               News
             </Link>
             <Link
-              to="/brokers"
+              to="/contact"
               className="block text-gray-300 hover:text-white transition-colors duration-300"
             >
-              Brokers
+              ContactUs
             </Link>
             <div className="border-t border-gray-700 pt-2">
               <button className="w-full bg-[#2962ff] text-white px-4 py-2 rounded-md hover:bg-blue-600 mt-2 transition-colors duration-300">
