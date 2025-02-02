@@ -6,14 +6,19 @@ import ContactUs from "./pages/ContectUs";
 import News from "./pages/News";
 import WalletPage from "./pages/Wallet";
 import Stock from "./pages/Stock";
+import LoginByPhone from "./pages/LoginByPhone";
+import LoginByEmail from "./pages/LoginByEmail";
+import Signup from "./pages/Signup";
 
 function App() {
   return (
     <Router>
       <Navbar />
       <Routes>
-        <Route path="/login" element={<Auth />} />
         <Route path="/" element={<Home />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/login/phone" element={<LoginByPhone />} />
+        <Route path="/login/email" element={<LoginByEmail />} />
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/wallet" element={<WalletPage />} />
         <Route path="/news" element={<News />} />

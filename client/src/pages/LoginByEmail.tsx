@@ -1,27 +1,44 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import I1 from "../assets/loginn.jpeg";
 import { FaGoogle } from "react-icons/fa";
-import { useTrade } from "../context/context.js";
-function Auth() {
-  const trade = useTrade();
-  const [isLogin, setIsLogin] = useState(true);
-  const setGlobalLogin = trade.setIsLogin;
-  const [showOTP, setShowOTP] = useState(false);
-  const navigate = useNavigate();
+import { LoginByEmailForm } from "../types/types";
+import { loginByEmail } from "../services/authService";
+import { toast } from "sonner";
 
-  const toggleAuthMode = () => {
-    setIsLogin(!isLogin);
-    setShowOTP(false);
+function LoginByEmail() {
+  const navigate = useNavigate();
+  const [form, setForm] = useState<LoginByEmailForm>({
+    email: "",
+    password: "",
+  });
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm((prevForm) => ({
+      ...prevForm,
+      [name]: value,
+    }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (isLogin && !showOTP) {
-      setShowOTP(true);
-    } else {
-      setGlobalLogin(true);
-      navigate("/");
+    try {
+      const response = await loginByEmail(form);
+      if (response.status === 200) {
+        localStorage.setItem("token", response.data.token); // Store token in local storage
+        console.log(response.data.message); // Handle successful login
+        toast.success(response.data.message || "Login successful!"); // Show success message
+        // navigate("/dashboard"); // Redirect after successful login
+      }
+    } catch (error: any) {
+      console.error(
+        "Login failed:",
+        error.response?.data?.message || "An error occurred"
+      ); // Handle error
+      toast.error(
+        error.response?.data?.message || "Login failed. Please try again."
+      );
     }
   };
 
@@ -46,28 +63,17 @@ function Auth() {
 
         <div className="w-full md:w-1/2 p-8">
           <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">
-            {isLogin ? "Welcome Back" : "Create Account"}
+            Login
           </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
-              <div>
-                <label className="text-sm text-gray-600 mb-1 block">
-                  Username
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter your username"
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
-                />
-              </div>
-            )}
-
+          <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="text-sm text-gray-600 mb-1 block">Email</label>
               <input
                 type="email"
+                name="email"
+                value={form.email}
+                onChange={handleFormChange}
                 placeholder="Enter your email"
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
@@ -80,39 +86,20 @@ function Auth() {
               </label>
               <input
                 type="password"
+                name="password"
+                value={form.password}
+                onChange={handleFormChange}
                 placeholder="Enter your password"
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
               />
             </div>
 
-            {showOTP && (
-              <div className="flex space-x-2">
-                <div className="flex-1">
-                  <label className="text-sm text-gray-600 mb-1 block">
-                    OTP
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Enter OTP"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  />
-                </div>
-                <button
-                  type="button"
-                  className="self-end px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-                >
-                  Verify
-                </button>
-              </div>
-            )}
-
             <button
               type="submit"
               className="w-full bg-blue-700 text-white py-3 rounded-lg hover:bg-blue-900 transition-colors"
             >
-              {isLogin ? (showOTP ? "Login" : "Send OTP") : "Sign Up"}
+              Login
             </button>
           </form>
 
@@ -135,16 +122,25 @@ function Auth() {
               <FaGoogle />
               Sign in with Google
             </button>
+
+            <div className="w-full flex items-center justify-center gap-2">
+              <Link
+                to="/login/phone"
+                className="mt-4 w-full text-center text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                Login with Phone Number
+              </Link>
+            </div>
           </div>
 
           <p className="text-center mt-6 text-gray-600">
-            {isLogin ? "Don't have an account? " : "Already have an account? "}
-            <button
-              onClick={toggleAuthMode}
+            Don't have an account?{" "}
+            <Link
+              to="/signup"
               className="text-blue-500 hover:text-blue-600"
             >
-              {isLogin ? "Sign Up" : "Login"}
-            </button>
+              Sign Up
+            </Link>
           </p>
         </div>
       </div>
@@ -152,4 +148,4 @@ function Auth() {
   );
 }
 
-export default Auth;
+export default LoginByEmail;
