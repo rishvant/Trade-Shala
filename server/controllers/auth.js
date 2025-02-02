@@ -53,7 +53,9 @@ const signup = async (req, res) => {
         return res.status(400).json({ message: "All fields are required" });
     }
 
-    const existingUser = await User.findOne({ phoneNumber });
+    const existingUser = await User.findOne({
+        $or: [{ email }, { phoneNumber }],
+    });
     if (existingUser) {
         return res.status(400).json({ message: "User already exists" });
     }
@@ -66,9 +68,9 @@ const signup = async (req, res) => {
 
 // Login
 const login = async (req, res) => {
-    const { phoneNumber, password } = req.body;
+    const { email, password } = req.body;
 
-    const user = await User.findOne({ phoneNumber });
+    const user = await User.findOne({ email });
     if (!user) {
         return res.status(400).json({ message: "User not found" });
     }
