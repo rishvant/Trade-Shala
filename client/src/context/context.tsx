@@ -7,23 +7,24 @@ interface TradeContextType {
 
 export const TradeContext = createContext<TradeContextType | null>(null);
 
-// export const useTrade = () => {
-//   const trade = useContext(TradeContext);
-//   if (!trade) {
-//     throw new Error("useTrade must be used within a TradeProvider");
-//   }
-//   return trade;
-// };
+export const useTrade = () => {
+  const trade = useContext(TradeContext);
+  if (!trade) {
+    throw new Error("useTrade must be used within a TradeProvider");
+  }
+  return trade;
+};
 
 interface TradeProviderProps {
-  children: ReactNode; // Define the type for children
+  children: ReactNode;
 }
 
-export const TradeProvider: React.FC<TradeProviderProps> = (props) => {
+export const TradeProvider: React.FC<TradeProviderProps> = ({ children }) => {
   const [isLogin, setIsLogin] = useState(true);
+
   return (
     <TradeContext.Provider value={{ isLogin, setIsLogin }}>
-      {props.children}
+      {children}
     </TradeContext.Provider>
   );
 };

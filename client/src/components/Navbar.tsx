@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-// import { useTrade } from "../context/context";
+import { useTrade } from "../context/context";
 import { IoWalletSharp } from "react-icons/io5";
+import { useState, useEffect, useRef } from "react";
 
 const Navbar = () => {
-  // const trade = useTrade();
-  const isLogin = false;
-  const setIsLogin = false;
+  const trade = useTrade();
+  const isLogin = trade.isLogin;
+  const setIsLogin = trade.setIsLogin;
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -120,12 +120,13 @@ const Navbar = () => {
                 >
                   <ul className="space-y-2 p-2">
                     <li>
-                      <button className="w-full flex items-center space-x-2 text-left py-2 px-4 hover:bg-[#2a2d39] transition-colors duration-200 rounded-md">
+                      <Link
+                        to="/wallet"
+                        className="w-full flex items-center space-x-2 text-left py-2 px-4 hover:bg-[#2a2d39] transition-colors duration-200 rounded-md"
+                      >
                         <IoWalletSharp className="text-sm" />
-                        <Link to="/wallet" className="text-sm font-medium">
-                          Wallet
-                        </Link>
-                      </button>
+                        <span className="text-sm font-medium">Wallet</span>
+                      </Link>
                     </li>
                     <li>
                       <button className="w-full flex items-center space-x-2 text-left py-2 px-4 hover:bg-[#2a2d39] transition-colors duration-200 rounded-md">

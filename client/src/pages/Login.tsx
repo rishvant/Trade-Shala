@@ -2,26 +2,27 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import I1 from "../assets/loginn.jpeg";
 import { FaGoogle } from "react-icons/fa";
-// import { useTrade } from "../context/context.js";
+import { useTrade } from "../context/context.js";
 function Auth() {
-  // const trade = useTrade();
-  const isLogin = false;
-  // const setIsLogin = trade.setIsLogin;
+  const trade = useTrade();
+  const [isLogin, setIsLogin] = useState(true);
+  const setGlobalLogin = trade.setIsLogin;
   const [showOTP, setShowOTP] = useState(false);
   const navigate = useNavigate();
 
-  // const toggleAuthMode = () => {
-  //   setIsLogin(!isLogin);
-  //   setShowOTP(false);
-  // };
+  const toggleAuthMode = () => {
+    setIsLogin(!isLogin);
+    setShowOTP(false);
+  };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // if (isLogin && !showOTP) {
-    //   setShowOTP(true);
-    // } else {
-    //   navigate("/");
-    // }
+    if (isLogin && !showOTP) {
+      setShowOTP(true);
+    } else {
+      setGlobalLogin(true);
+      navigate("/");
+    }
   };
 
   const handleGoogleSignIn = () => {
@@ -139,7 +140,7 @@ function Auth() {
           <p className="text-center mt-6 text-gray-600">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button
-              // onClick={toggleAuthMode}
+              onClick={toggleAuthMode}
               className="text-blue-500 hover:text-blue-600"
             >
               {isLogin ? "Sign Up" : "Login"}

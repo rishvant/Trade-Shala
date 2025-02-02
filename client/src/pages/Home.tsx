@@ -5,6 +5,8 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Card from "../components/Card";
+import { motion, AnimatePresence } from "framer-motion";
+import { FaChartLine, FaNewspaper, FaWallet, FaLock } from "react-icons/fa";
 
 const Home = () => {
   const [activeTab, setActiveTab] = useState("indices");
@@ -95,56 +97,230 @@ const Home = () => {
     { id: "watchlist", label: "Watchlist", icon: <StarIcon /> },
   ];
 
+  const features = [
+    {
+      icon: <FaChartLine className="text-3xl" />,
+      title: "Real-time Trading",
+      description: "Experience live market data and execute trades instantly",
+    },
+    {
+      icon: <FaNewspaper className="text-3xl" />,
+      title: "Market News",
+      description: "Stay informed with the latest market updates and analysis",
+    },
+    {
+      icon: <FaWallet className="text-3xl" />,
+      title: "Portfolio Management",
+      description: "Track and manage your investments in one place",
+    },
+    {
+      icon: <FaLock className="text-3xl" />,
+      title: "Secure Platform",
+      description: "Trade with confidence on our secure platform",
+    },
+  ];
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+      },
+    },
+  };
+
+  // Add this new component for the glitter effect
+  const GlitterEffect = () => {
+    return (
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{
+              opacity: 0,
+              scale: 0,
+              x: Math.random() * window.innerWidth,
+              y: Math.random() * window.innerHeight,
+            }}
+            animate={{
+              opacity: [0, 1, 0],
+              scale: [0, 1, 0],
+              x: Math.random() * window.innerWidth,
+              y: Math.random() * window.innerHeight,
+            }}
+            transition={{
+              duration: Math.random() * 2 + 1,
+              repeat: Infinity,
+              repeatDelay: Math.random() * 2,
+              ease: "easeInOut",
+            }}
+            className="absolute w-1 h-1 bg-white rounded-full"
+            style={{
+              filter: "blur(1px)",
+              boxShadow: "0 0 4px #fff, 0 0 8px #fff",
+            }}
+          />
+        ))}
+      </div>
+    );
+  };
+
   return (
-    <div className="bg-gradient-to-br from-gray-900 to-black min-h-screen">
-      <HeroSection />
-      {/* ye ab aaya mere paas indices vaa section */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-center mb-8">
-          <div className="flex bg-gray-800 rounded-full p-1">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 ${
-                  activeTab === tab.id
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-400 hover:bg-gray-700"
-                }`}
-              >
-                {tab.icon}
-                <span>{tab.label}</span>
-              </button>
-            ))}
+    <div className="min-h-screen bg-[#131722] text-white">
+      {/* Hero Section */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="relative pt-20 pb-16 px-4 sm:px-6 lg:px-8 text-center overflow-hidden"
+      >
+        <GlitterEffect />
+        <motion.h1
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="relative z-10 text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent"
+        >
+          Welcome to Trade-GPT
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="relative z-10 text-xl text-gray-400 max-w-2xl mx-auto"
+        >
+          Your intelligent trading companion for the modern financial markets
+        </motion.p>
+      </motion.div>
+
+      {/* Features Grid */}
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {features.map((feature, index) => (
+            <motion.div
+              key={index}
+              variants={itemVariants}
+              whileHover={{ scale: 1.05 }}
+              className="bg-[#1E222D] p-6 rounded-xl border border-green-500/20 hover:border-green-500/40 transition-colors duration-300"
+            >
+              <div className="text-green-500 mb-4">{feature.icon}</div>
+              <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+              <p className="text-gray-400">{feature.description}</p>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Stats Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.6 }}
+        className="bg-[#1E222D] py-16 mt-12"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <motion.div whileHover={{ scale: 1.05 }} className="p-6">
+              <div className="text-3xl font-bold text-green-500 mb-2">10K+</div>
+              <div className="text-gray-400">Active Traders</div>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.05 }} className="p-6">
+              <div className="text-3xl font-bold text-green-500 mb-2">
+                $50M+
+              </div>
+              <div className="text-gray-400">Trading Volume</div>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.05 }} className="p-6">
+              <div className="text-3xl font-bold text-green-500 mb-2">24/7</div>
+              <div className="text-gray-400">Support Available</div>
+            </motion.div>
           </div>
         </div>
+      </motion.div>
 
-        {activeTab === "indices" && (
-          <div className="space-y-6">
-            <h2 className="text-2xl md:text-4xl font-bold text-white text-center mb-8">
-              Market Indices
-            </h2>
-            <div className="overflow-hidden">
-              <Slider {...settings}>
-                {cardData.map((data, index) => (
-                  <Card
-                    key={index}
-                    icon={data.icon}
-                    symbol={data.symbol}
-                    value={data.value}
-                    change={data.change}
-                  />
-                ))}
-              </Slider>
+      {/* CTA Section */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.8 }}
+        className="text-center py-16 px-4"
+      >
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="bg-green-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors duration-300"
+        >
+          Start Trading Now
+        </motion.button>
+      </motion.div>
+
+      <div className="bg-gradient-to-br from-gray-900 to-black min-h-screen">
+        <HeroSection />
+        {/* ye ab aaya mere paas indices vaa section */}
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex justify-center mb-8">
+            <div className="flex bg-gray-800 rounded-full p-1">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 ${
+                    activeTab === tab.id
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-400 hover:bg-gray-700"
+                  }`}
+                >
+                  {tab.icon}
+                  <span>{tab.label}</span>
+                </button>
+              ))}
             </div>
           </div>
-        )}
 
-        {activeTab === "watchlist" && (
-          <div className="text-center text-gray-400">
-            <p>Abhi kuch nahi hai</p>
-          </div>
-        )}
+          {activeTab === "indices" && (
+            <div className="space-y-6">
+              <h2 className="text-2xl md:text-4xl font-bold text-white text-center mb-8">
+                Market Indices
+              </h2>
+              <div className="overflow-hidden">
+                <Slider {...settings}>
+                  {cardData.map((data, index) => (
+                    <Card
+                      key={index}
+                      icon={data.icon}
+                      symbol={data.symbol}
+                      value={data.value}
+                      change={data.change}
+                    />
+                  ))}
+                </Slider>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "watchlist" && (
+            <div className="text-center text-gray-400">
+              <p>Abhi kuch nahi hai</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
