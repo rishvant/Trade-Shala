@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChartLineIcon, StarIcon } from "lucide-react";
+import { ChartLineIcon, StarIcon, Search } from "lucide-react";
 import HeroSection from "../components/HeroSection";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
@@ -7,9 +7,15 @@ import "slick-carousel/slick/slick-theme.css";
 import Card from "../components/Card";
 import { motion } from "framer-motion";
 import { FaChartLine, FaNewspaper, FaWallet, FaLock } from "react-icons/fa";
+import { searchStockData } from "../services/stockService";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
   const [activeTab, setActiveTab] = useState("indices");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const settings = {
     dots: false,
@@ -177,6 +183,37 @@ const Home = () => {
     );
   };
 
+  const handleSearch = async (value: string) => {
+    setSearchTerm(value);
+
+    if (value.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await searchStockData(value);
+      setSearchResults(
+        Object.entries(response.data).map(([symbol, name]) => ({
+          symbol,
+          name,
+        }))
+      );
+    } catch (error) {
+      console.error("Search error:", error);
+      setSearchResults([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleStockSelect = (symbol: string) => {
+    setSearchTerm("");
+    setSearchResults([]);
+    navigate(`/stock/${symbol}`);
+  };
+
   return (
     <div className="min-h-screen bg-[#131722] text-white">
       {/* Hero Section */}
@@ -199,10 +236,64 @@ const Home = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="relative z-10 text-xl text-gray-400 max-w-2xl mx-auto"
+          className="relative z-10 text-xl text-gray-400 max-w-2xl mx-auto mb-8"
         >
           Your intelligent trading companion for the modern financial markets
         </motion.p>
+
+        {/* Search Bar */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
+          className="relative max-w-2xl mx-auto mb-12"
+        >
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => handleSearch(e.target.value)}
+              placeholder="Search for stocks..."
+              className="w-full px-12 py-4 bg-[#1E222D] text-white rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none"
+            />
+
+            {/* Search Results Dropdown */}
+            {searchTerm && searchResults.length > 0 && (
+              <div className="absolute w-full mt-2 bg-[#1E222D] border border-gray-700 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                {searchResults.map(({ symbol, name }) => (
+                  <button
+                    key={symbol}
+                    onClick={() => handleStockSelect(symbol)}
+                    className="w-full px-4 py-3 text-left hover:bg-gray-700 flex items-center justify-between group"
+                  >
+                    <div>
+                      <div className="text-white font-medium">{symbol}</div>
+                      <div className="text-sm text-gray-400">{name}</div>
+                    </div>
+                    <span className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                      View →
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Loading State */}
+            {isLoading && (
+              <div className="absolute w-full mt-2 bg-[#1E222D] border border-gray-700 rounded-lg p-4 text-center text-gray-400">
+                Searching...
+              </div>
+            )}
+
+            {/* No Results State */}
+            {searchTerm && !isLoading && searchResults.length === 0 && (
+              <div className="absolute w-full mt-2 bg-[#1E222D] border border-gray-700 rounded-lg p-4 text-center text-gray-400">
+                No stocks found
+              </div>
+            )}
+          </div>
+        </motion.div>
       </motion.div>
 
       {/* Features Grid */}

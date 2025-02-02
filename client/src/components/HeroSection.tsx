@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { Search } from "lucide-react";
 import image from "../assets/ttt.jpg";
 import { MarketTickerProps } from "../types/types";
+import { motion } from "framer-motion";
+import { searchStockData } from "../services/stockService";
+import { useNavigate } from "react-router-dom";
 
 // Define the props interface for MarketTicker
 const MarketTicker: React.FC<MarketTickerProps> = ({
@@ -22,7 +25,91 @@ const MarketTicker: React.FC<MarketTickerProps> = ({
   </div>
 );
 
+const GlitterEffect = () => {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {[...Array(50)].map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{
+            opacity: 0,
+            scale: 0,
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+          }}
+          animate={{
+            opacity: [0, 0.8, 0],
+            scale: [0, Math.random() * 0.5 + 0.5, 0],
+            x: [
+              Math.random() * window.innerWidth,
+              Math.random() * window.innerWidth,
+              Math.random() * window.innerWidth,
+            ],
+            y: [
+              Math.random() * window.innerHeight,
+              Math.random() * window.innerHeight,
+              Math.random() * window.innerHeight,
+            ],
+          }}
+          transition={{
+            duration: Math.random() * 3 + 2,
+            repeat: Infinity,
+            repeatDelay: Math.random() * 1,
+            ease: "easeInOut",
+          }}
+          className="absolute w-1 h-1 bg-white rounded-full"
+          style={{
+            filter: `blur(${Math.random() * 2}px)`,
+            boxShadow: `
+              0 0 ${Math.random() * 4 + 2}px #fff,
+              0 0 ${Math.random() * 8 + 4}px #fff,
+              0 0 ${Math.random() * 12 + 8}px rgba(255,255,255,0.5)
+            `,
+            backgroundColor: `hsl(${Math.random() * 60 + 180}, 100%, 90%)`,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
 const HeroSection = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSearch = async (value: string) => {
+    setSearchTerm(value);
+
+    if (value.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await searchStockData(value);
+      setSearchResults(
+        Object.entries(response.data).map(([symbol, name]) => ({
+          symbol,
+          name,
+        }))
+      );
+    } catch (error) {
+      console.error("Search error:", error);
+      setSearchResults([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleStockSelect = (symbol: string) => {
+    setSearchTerm("");
+    setSearchResults([]);
+    navigate(`/stock/${symbol}`);
+  };
+
   return (
     <div>
       <div className="sm:px-8 relative min-h-screen bg-gradient-to-br from-[#131722] to-[#1e222d] overflow-hidden">
@@ -46,12 +133,51 @@ const HeroSection = () => {
             </p>
 
             <div className="relative max-w-2xl mb-12">
-              <input
-                type="text"
-                placeholder="Search markets here"
-                className="w-full px-6 py-4 bg-white rounded-full text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <Search className="absolute right-6 top-1/2 transform -translate-y-1/2 text-gray-400 w-6 h-6" />
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  placeholder="Search for stocks..."
+                  className="w-full px-12 py-4 bg-white rounded-full text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                />
+
+                {/* Search Results Dropdown */}
+                {searchTerm && searchResults.length > 0 && (
+                  <div className="absolute w-full mt-2 bg-white rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                    {searchResults.map(({ symbol, name }) => (
+                      <button
+                        key={symbol}
+                        onClick={() => handleStockSelect(symbol)}
+                        className="w-full px-4 py-3 text-left hover:bg-gray-100 flex items-center justify-between group"
+                      >
+                        <div>
+                          <div className="text-black font-medium">{symbol}</div>
+                          <div className="text-sm text-gray-600">{name}</div>
+                        </div>
+                        <span className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                          View →
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Loading State */}
+                {isLoading && (
+                  <div className="absolute w-full mt-2 bg-white rounded-lg p-4 text-center text-gray-600">
+                    Searching...
+                  </div>
+                )}
+
+                {/* No Results State */}
+                {searchTerm && !isLoading && searchResults.length === 0 && (
+                  <div className="absolute w-full mt-2 bg-white rounded-lg p-4 text-center text-gray-600">
+                    No stocks found
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="flex space-x-4 overflow-x-auto pb-4">
@@ -89,6 +215,7 @@ const HeroSection = () => {
           </div>
         </div>
       </div>
+      <GlitterEffect />
     </div>
   );
 };
