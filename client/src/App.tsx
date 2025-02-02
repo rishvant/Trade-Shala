@@ -9,22 +9,25 @@ import Stock from "./pages/Stock";
 import LoginByPhone from "./pages/LoginByPhone";
 import LoginByEmail from "./pages/LoginByEmail";
 import Signup from "./pages/Signup";
+import { TradeProvider } from "./context/context";
 
 function App() {
   return (
-    <Router>
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/login/phone" element={<LoginByPhone />} />
-        <Route path="/login/email" element={<LoginByEmail />} />
-        <Route path="/contact" element={<ContactUs />} />
-        <Route path="/wallet" element={<WalletPage />} />
-        <Route path="/news" element={<News />} />
-        <Route path="/stock/:stockName" element={<Stock />} />
-      </Routes>
-    </Router>
+    <TradeProvider>
+      <Router>
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/login/phone" element={<LoginByPhone />} />
+          <Route path="/login/email" element={<LoginByEmail />} />
+          <Route path="/contact" element={<ContactUs />} />
+          <Route path="/wallet" element={<WalletPage />} />
+          <Route path="/news" element={<News />} />
+          <Route path="/stock/:stockName" element={<Stock />} />
+        </Routes>
+      </Router>
+    </TradeProvider>
   );
 }
 
