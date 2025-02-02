@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { ChartLineIcon, StarIcon } from "lucide-react";
 import HeroSection from "../components/HeroSection";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Card from "../components/Card";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { FaChartLine, FaNewspaper, FaWallet, FaLock } from "react-icons/fa";
 
 const Home = () => {
