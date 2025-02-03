@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTrade } from "../context/context";
 
 interface TradingPanelProps {
   currentPrice: number;
@@ -11,6 +12,7 @@ const TradingPanel: React.FC<TradingPanelProps> = ({
   currentPrice,
   symbol,
 }) => {
+  const { addOrder, balance } = useTrade();
   const [quantity, setQuantity] = useState<number>(1);
   const [orderType, setOrderType] = useState<"market" | "limit">("market");
   const [limitPrice, setLimitPrice] = useState<number>(currentPrice);
@@ -18,12 +20,32 @@ const TradingPanel: React.FC<TradingPanelProps> = ({
   const totalAmount = currentPrice * quantity;
 
   const handleTrade = (action: "buy" | "sell") => {
-    // Implement trade logic here
-    console.log(
-      `${action.toUpperCase()} ${quantity} ${symbol} at ${
-        orderType === "market" ? "market price" : limitPrice
-      }`
-    );
+    try {
+      if (action === "buy" && totalAmount > balance) {
+        alert("Insufficient balance for this trade");
+        return;
+      }
+
+      const orderData = {
+        symbol,
+        type: orderType,
+        action,
+        quantity,
+        price: orderType === "market" ? currentPrice : limitPrice,
+        limitPrice: orderType === "limit" ? limitPrice : undefined,
+      };
+
+      console.log("Submitting order:", orderData); // Debug log
+      addOrder(orderData);
+
+      // Show success message
+      alert(`${action.toUpperCase()} order placed successfully!`);
+      // Reset quantity
+      setQuantity(1);
+    } catch (error) {
+      console.error("Order error:", error); // Debug log
+      alert("Failed to place order. Please try again.");
+    }
   };
 
   return (
@@ -51,7 +73,7 @@ const TradingPanel: React.FC<TradingPanelProps> = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-400 ">
+          <label className="block text-sm font-medium text-gray-400">
             Quantity
           </label>
           <input
@@ -59,7 +81,7 @@ const TradingPanel: React.FC<TradingPanelProps> = ({
             min="1"
             value={quantity}
             onChange={(e) => setQuantity(Number(e.target.value))}
-            className="mt-1 block w-full rounded-md bg-[#262932] text-white border-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 p"
+            className="mt-1 block w-full rounded-md bg-[#262932] text-white border-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
 
@@ -106,7 +128,7 @@ const TradingPanel: React.FC<TradingPanelProps> = ({
       </div>
 
       <p className="text-sm text-gray-400 text-center mt-4">
-        Available Balance: ₹100,000.00
+        Available Balance: ₹{balance.toFixed(2)}
       </p>
     </motion.div>
   );
