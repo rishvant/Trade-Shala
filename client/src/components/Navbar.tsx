@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useTrade } from "../context/context";
 import { IoWalletSharp } from "react-icons/io5";
+import { CgProfile } from "react-icons/cg";
 import { useState, useEffect, useRef } from "react";
 
 const Navbar = () => {
@@ -130,9 +131,9 @@ const Navbar = () => {
                     </li>
                     <li>
                       <button className="w-full flex items-center space-x-2 text-left py-2 px-4 hover:bg-[#2a2d39] transition-colors duration-200 rounded-md">
-                        <IoWalletSharp className="text-sm" />
-                        <Link to="/wallet" className="text-sm font-medium">
-                          Orders
+                        <CgProfile className="text-sm" />
+                        <Link to="/profile" className="text-sm font-medium">
+                          Profile
                         </Link>
                       </button>
                     </li>
@@ -174,7 +175,7 @@ const Navbar = () => {
                   : "bg-[#2962ff] text-white hover:bg-[#1c54d4]" // Login button style (blue)
               }`}
               onClick={isLogin ? handleLogout : undefined}
-              to="/login"
+              to="/login/phone"
             >
               Login
             </Link>

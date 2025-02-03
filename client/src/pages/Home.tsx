@@ -221,14 +221,14 @@ const Home = () => {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative pt-20 pb-16 px-4 sm:px-6 lg:px-8 text-center overflow-hidden"
+        className="relative pt-20 pb-16 px-4 sm:px-6 lg:px-8 text-center"
       >
         <GlitterEffect />
         <motion.h1
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="relative z-10 text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent"
+          className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent"
         >
           Welcome to Trade-GPT
         </motion.h1>
@@ -236,17 +236,17 @@ const Home = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="relative z-10 text-xl text-gray-400 max-w-2xl mx-auto mb-8"
+          className="text-xl text-gray-400 max-w-2xl mx-auto mb-8"
         >
           Your intelligent trading companion for the modern financial markets
         </motion.p>
 
-        {/* Search Bar */}
+        {/* Search Bar with higher z-index */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.6 }}
-          className="relative max-w-2xl mx-auto mb-12"
+          className="relative max-w-2xl mx-auto mb-12 z-50"
         >
           <div className="relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -296,12 +296,12 @@ const Home = () => {
         </motion.div>
       </motion.div>
 
-      {/* Features Grid */}
+      {/* Features Grid with lower z-index */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
+        className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 z-0"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {features.map((feature, index) => (
@@ -412,6 +412,15 @@ const Home = () => {
             </div>
           )}
         </div>
+
+        {/* Market Movers Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.8 }}
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
+        ></motion.div>
+        
       </div>
     </div>
   );

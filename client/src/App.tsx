@@ -10,6 +10,7 @@ import LoginByPhone from "./pages/LoginByPhone";
 import LoginByEmail from "./pages/LoginByEmail";
 import Signup from "./pages/Signup";
 import { TradeProvider } from "./context/context";
+import Profile from "./pages/Profile"
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           <Route path="/contact" element={<ContactUs />} />
           <Route path="/wallet" element={<WalletPage />} />
           <Route path="/news" element={<News />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/stock/:stockName" element={<Stock />} />
         </Routes>
       </Router>
