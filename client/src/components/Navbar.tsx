@@ -1,10 +1,30 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTrade } from "../context/context";
 import { IoWalletSharp } from "react-icons/io5";
 import { CgProfile } from "react-icons/cg";
 import { useState, useEffect, useRef } from "react";
+import { Search, X } from "lucide-react";
+import axios from "axios";
+import { searchStockData } from "../services/stockService";
+
+interface SearchResult {
+  [key: string]: string;
+}
+
+const searchBarAnimation = `
+  @keyframes searchBarLoading {
+    0% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+`;
 
 const Navbar = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchResult>({});
+  const [showResults, setShowResults] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
   const trade = useTrade();
   const isLogin = trade.isLogin;
   const setIsLogin = trade.setIsLogin;
@@ -48,8 +68,54 @@ const Navbar = () => {
     };
   }, []);
 
+  // Handle click outside search results
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
+        setShowResults(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Debounced search function
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (searchQuery.length >= 2) {
+        setIsSearching(true);
+        try {
+          const response = await searchStockData(searchQuery);
+          setSearchResults(response.data);
+          setShowResults(true);
+        } catch (error) {
+          console.error("Search error:", error);
+        } finally {
+          setIsSearching(false);
+        }
+      } else {
+        setSearchResults({});
+        setShowResults(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handleSearchClose = () => {
+    setIsSearchOpen(false);
+    setSearchQuery("");
+    setShowResults(false);
+  };
+
+  const navigate = useNavigate();
+
   return (
-    <nav className="bg-[#131722] p-4 shadow-md">
+    <nav className="bg-[#131722] p-4 shadow-md sticky top-0 z-10">
       <div className="container mx-auto flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center space-x-8">
@@ -58,31 +124,13 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Main Navigation (Centered) */}
-        <div className="hidden lg:flex flex-1 justify-center space-x-8">
+        {/* Navigation Links */}
+        <div className="hidden lg:flex space-x-8">
           <Link
             to="/"
             className="text-gray-300 hover:text-white transition-colors duration-300"
           >
             Home
-          </Link>
-          <Link
-            to="/products"
-            className="text-gray-300 hover:text-white transition-colors duration-300"
-          >
-            Products
-          </Link>
-          <Link
-            to="/community"
-            className="text-gray-300 hover:text-white transition-colors duration-300"
-          >
-            Community
-          </Link>
-          <Link
-            to="/markets"
-            className="text-gray-300 hover:text-white transition-colors duration-300"
-          >
-            Markets
           </Link>
           <Link
             to="/news"
@@ -96,6 +144,97 @@ const Navbar = () => {
           >
             ContactUs
           </Link>
+        </div>
+
+        {/* Search Bar */}
+        <div className="relative" ref={searchRef}>
+          {/* Mobile Search Icon */}
+          <button
+            onClick={() => setIsSearchOpen(true)}
+            className="lg:hidden text-gray-400 hover:text-white transition-colors"
+          >
+            <Search size={20} />
+          </button>
+
+          {/* Search Input - Desktop & Mobile Overlay */}
+          <div
+            className={`${
+              isSearchOpen
+                ? "fixed inset-0 bg-black/50 lg:relative lg:bg-transparent"
+                : "hidden lg:block"
+            }`}
+          >
+            <div
+              className={`${
+                isSearchOpen
+                  ? "absolute top-0 left-0 right-0 p-4 bg-[#131722] lg:relative lg:p-0"
+                  : "relative"
+              }`}
+            >
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search stocks..."
+                  className={`w-full lg:w-96 bg-[#1E222D] text-gray-300 px-4 py-2 pl-10 pr-10 rounded-lg border focus:outline-none transition-all duration-200 ${
+                    isSearching
+                      ? "border-blue-500/50 bg-gradient-to-r from-[#1E222D] via-[#262932] to-[#1E222D] bg-[length:200%_100%]"
+                      : "border-gray-700 focus:border-blue-500"
+                  }`}
+                  style={
+                    isSearching
+                      ? {
+                          animation:
+                            "searchBarLoading 1.5s ease-in-out infinite",
+                        }
+                      : {}
+                  }
+                />
+                <Search
+                  className={`absolute left-3 top-1/2 transform -translate-y-1/2 transition-colors duration-200 ${
+                    isSearching ? "text-blue-500" : "text-gray-400"
+                  }`}
+                  size={18}
+                />
+                {isSearchOpen && (
+                  <button
+                    onClick={handleSearchClose}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white lg:hidden"
+                  >
+                    <X size={18} />
+                  </button>
+                )}
+              </div>
+
+              {/* Search Results Dropdown */}
+              {showResults && Object.keys(searchResults).length > 0 && (
+                <div
+                  className={`absolute w-full mt-2 bg-[#1E222D] border border-gray-700 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto transition-all duration-200 ${
+                    isSearching
+                      ? "opacity-60 translate-y-1"
+                      : "opacity-100 translate-y-0"
+                  }`}
+                >
+                  {Object.entries(searchResults).map(([symbol, name]) => (
+                    <div
+                      key={symbol}
+                      onClick={() => {
+                        navigate(`/stock/${symbol}`);
+                        setSearchQuery("");
+                        setShowResults(false);
+                        setIsSearchOpen(false);
+                      }}
+                      className="px-4 py-3 hover:bg-[#262932] cursor-pointer border-b border-gray-700 last:border-0"
+                    >
+                      <div className="text-white font-medium">{symbol}</div>
+                      <div className="text-gray-400 text-sm">{name}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Right Side Navigation */}
@@ -206,23 +345,12 @@ const Navbar = () => {
         <div className="lg:hidden bg-[#1e222d] mt-4 p-4 rounded-lg">
           <div className="space-y-4">
             <Link
-              to="/products"
+              to="/"
               className="block text-gray-300 hover:text-white transition-colors duration-300"
             >
-              Products
+              Home
             </Link>
-            <Link
-              to="/community"
-              className="block text-gray-300 hover:text-white transition-colors duration-300"
-            >
-              Community
-            </Link>
-            <Link
-              to="/markets"
-              className="block text-gray-300 hover:text-white transition-colors duration-300"
-            >
-              Markets
-            </Link>
+
             <Link
               to="/news"
               className="block text-gray-300 hover:text-white transition-colors duration-300"
@@ -235,14 +363,11 @@ const Navbar = () => {
             >
               ContactUs
             </Link>
-            <div className="border-t border-gray-700 pt-2">
-              <button className="w-full bg-[#2962ff] text-white px-4 py-2 rounded-md hover:bg-blue-600 mt-2 transition-colors duration-300">
-                <Link to={"/login"}>Sign In</Link>
-              </button>
-            </div>
           </div>
         </div>
       )}
+
+      <style>{searchBarAnimation}</style>
     </nav>
   );
 };

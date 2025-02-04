@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 import { FaChartLine, FaNewspaper, FaWallet, FaLock } from "react-icons/fa";
 import { searchStockData } from "../services/stockService";
 import { useNavigate } from "react-router-dom";
-
+import TopGainers from "../components/Topgainers";
 const Home = () => {
   const [activeTab, setActiveTab] = useState("indices");
   const [searchTerm, setSearchTerm] = useState("");
@@ -22,7 +22,7 @@ const Home = () => {
     infinite: true,
     slidesToShow: 4,
     slidesToScroll: 1,
-    autoplay: true,
+    autoplay: false,
     speed: 2000,
     autoplaySpeed: 1000,
     cssEase: "linear",
@@ -241,59 +241,7 @@ const Home = () => {
           Your intelligent trading companion for the modern financial markets
         </motion.p>
 
-        {/* Search Bar with higher z-index */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-          className="relative max-w-2xl mx-auto mb-12 z-50"
-        >
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Search for stocks..."
-              className="w-full px-12 py-4 bg-[#1E222D] text-white rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none"
-            />
-
-            {/* Search Results Dropdown */}
-            {searchTerm && searchResults.length > 0 && (
-              <div className="absolute w-full mt-2 bg-[#1E222D] border border-gray-700 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
-                {searchResults.map(({ symbol, name }) => (
-                  <button
-                    key={symbol}
-                    onClick={() => handleStockSelect(symbol)}
-                    className="w-full px-4 py-3 text-left hover:bg-gray-700 flex items-center justify-between group"
-                  >
-                    <div>
-                      <div className="text-white font-medium">{symbol}</div>
-                      <div className="text-sm text-gray-400">{name}</div>
-                    </div>
-                    <span className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                      View →
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Loading State */}
-            {isLoading && (
-              <div className="absolute w-full mt-2 bg-[#1E222D] border border-gray-700 rounded-lg p-4 text-center text-gray-400">
-                Searching...
-              </div>
-            )}
-
-            {/* No Results State */}
-            {searchTerm && !isLoading && searchResults.length === 0 && (
-              <div className="absolute w-full mt-2 bg-[#1E222D] border border-gray-700 rounded-lg p-4 text-center text-gray-400">
-                No stocks found
-              </div>
-            )}
-          </div>
-        </motion.div>
+        
       </motion.div>
 
       {/* Features Grid with lower z-index */}
@@ -419,7 +367,7 @@ const Home = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.8 }}
           className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
-        ></motion.div>
+        ><TopGainers></TopGainers></motion.div>
         
       </div>
     </div>

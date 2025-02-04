@@ -21,20 +21,21 @@ const StockChart: React.FC<StockChartProps> = ({ data, timeRange }) => {
     if (chartContainerRef.current) {
       const chart = createChart(chartContainerRef.current, {
         layout: {
-          background: { type: ColorType.Solid, color: "#ffffff" },
-          textColor: "#64748b",
+          background: { type: ColorType.Solid, color: "#1E222D" },
+          textColor: "#9CA3AF",
           fontFamily: "Inter, sans-serif",
         },
         grid: {
-          vertLines: { visible: false },
-          horzLines: { color: "#f1f5f9" },
+          vertLines: { color: "#262932", style: 1 },
+          horzLines: { color: "#262932", style: 1 },
         },
         width: chartContainerRef.current.clientWidth,
-        height: 400,
+        height: 500,
         timeScale: {
           timeVisible: true,
           secondsVisible: false,
-          borderColor: "#e2e8f0",
+          borderColor: "#374151",
+          textColor: "#9CA3AF",
           fixLeftEdge: true,
           fixRightEdge: true,
           tickMarkFormatter: (time: number) => {
@@ -51,25 +52,27 @@ const StockChart: React.FC<StockChartProps> = ({ data, timeRange }) => {
           },
         },
         rightPriceScale: {
-          borderColor: "#e2e8f0",
+          borderColor: "#374151",
+          textColor: "#9CA3AF",
           scaleMargins: {
             top: 0.1,
-            bottom: 0.1,
+            bottom: 0.2,
           },
+          borderVisible: true,
         },
         crosshair: {
           mode: 1,
           vertLine: {
             width: 1,
-            color: "#94a3b8",
+            color: "rgba(255, 255, 255, 0.3)",
             style: 3,
-            labelBackgroundColor: "#64748b",
+            labelBackgroundColor: "#374151",
           },
           horzLine: {
             width: 1,
-            color: "#94a3b8",
+            color: "rgba(255, 255, 255, 0.3)",
             style: 3,
-            labelBackgroundColor: "#64748b",
+            labelBackgroundColor: "#374151",
           },
         },
         handleScroll: {
@@ -85,49 +88,60 @@ const StockChart: React.FC<StockChartProps> = ({ data, timeRange }) => {
         },
       });
 
-      const lineSeries = chart.addLineSeries({
-        color: "#2563eb",
+      // Add area series
+      const areaSeries = chart.addAreaSeries({
+        topColor: "rgba(59, 130, 246, 0.3)",
+        bottomColor: "rgba(59, 130, 246, 0.0)",
+        lineColor: "#3B82F6",
         lineWidth: 2,
         crosshairMarkerVisible: true,
         crosshairMarkerRadius: 4,
-        crosshairMarkerBorderColor: "#2563eb",
-        crosshairMarkerBackgroundColor: "#ffffff",
+        crosshairMarkerBorderColor: "#3B82F6",
+        crosshairMarkerBackgroundColor: "#1E222D",
         priceLineVisible: true,
         priceLineWidth: 1,
-        priceLineColor: "#2563eb",
+        priceLineColor: "#3B82F6",
         priceLineStyle: 2,
         lastValueVisible: true,
         lastPriceAnimation: 1,
-        baseLineVisible: true,
-        baseLineColor: "#e2e8f0",
-        baseLineWidth: 1,
-        baseLineStyle: 1,
       });
 
-      // Add area gradient
-      lineSeries.applyOptions({
-        lineType: 2,
+      // Add volume series
+      const volumeSeries = chart.addHistogramSeries({
+        color: "#3B82F6",
         priceFormat: {
-          type: "price",
-          precision: 2,
-          minMove: 0.01,
+          type: "volume",
         },
-        priceScaleId: "right",
+        priceScaleId: "",
+        scaleMargins: {
+          top: 0.8,
+          bottom: 0,
+        },
       });
 
       // Format data for the chart
-      const lineData = data.map((item) => ({
+      const areaData = data.map((item) => ({
         time: (new Date(item.time).getTime() / 1000) as Time,
         value: item.price,
       }));
 
-      lineSeries.setData(lineData);
+      const volumeData = data.map((item) => ({
+        time: (new Date(item.time).getTime() / 1000) as Time,
+        value: item.volume,
+        color:
+          item.price > (data[data.indexOf(item) - 1]?.price || item.price)
+            ? "rgba(34, 197, 94, 0.5)"
+            : "rgba(239, 68, 68, 0.5)",
+      }));
+
+      areaSeries.setData(areaData);
+      volumeSeries.setData(volumeData);
 
       // Add price formatter
       chart.applyOptions({
         localization: {
           priceFormatter: (price: number) => {
-            return new Intl.NumberFormat("en-US", {
+            return new Intl.NumberFormat("en-IN", {
               style: "currency",
               currency: "INR",
               minimumFractionDigits: 2,
@@ -136,20 +150,25 @@ const StockChart: React.FC<StockChartProps> = ({ data, timeRange }) => {
         },
       });
 
-      // Create tooltip
+      // Create custom tooltip
+      const toolTipWidth = 80;
+      const toolTipHeight = 80;
+      const toolTipMargin = 15;
+
       const container = document.createElement("div");
       container.style.position = "absolute";
+      container.style.left = "12px";
+      container.style.top = "12px";
+      container.style.zIndex = "1";
       container.style.display = "none";
       container.style.padding = "8px 12px";
-      container.style.backgroundColor = "rgba(255, 255, 255, 0.95)";
-      container.style.border = "1px solid #e2e8f0";
-      container.style.borderRadius = "6px";
-      container.style.boxShadow =
-        "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)";
+      container.style.boxSizing = "border-box";
       container.style.fontSize = "12px";
-      container.style.color = "#1e293b";
-      container.style.zIndex = "1000";
-      container.style.pointerEvents = "none";
+      container.style.color = "#9CA3AF";
+      container.style.background = "#262932";
+      container.style.borderRadius = "6px";
+      container.style.border = "1px solid #374151";
+      container.style.boxShadow = "0 2px 4px rgba(0,0,0,0.2)";
       chartContainerRef.current.appendChild(container);
 
       chart.subscribeCrosshairMove((param) => {
@@ -163,16 +182,23 @@ const StockChart: React.FC<StockChartProps> = ({ data, timeRange }) => {
         ) {
           container.style.display = "none";
         } else {
-          const data = param.seriesData.get(lineSeries) as
+          const data = param.seriesData.get(areaSeries) as
+            | { value: number }
+            | undefined;
+          const volumeData = param.seriesData.get(volumeSeries) as
             | { value: number }
             | undefined;
 
           if (data) {
-            const price = new Intl.NumberFormat("en-US", {
+            const price = new Intl.NumberFormat("en-IN", {
               style: "currency",
               currency: "INR",
               minimumFractionDigits: 2,
             }).format(data.value);
+
+            const volume = volumeData
+              ? new Intl.NumberFormat("en-IN").format(volumeData.value)
+              : "N/A";
 
             const date = new Date((param.time as number) * 1000);
             const dateStr = format(
@@ -181,46 +207,33 @@ const StockChart: React.FC<StockChartProps> = ({ data, timeRange }) => {
             );
 
             container.innerHTML = `
-              <div style="font-weight: 500; margin-bottom: 4px;">${dateStr}</div>
-              <div style="color: #2563eb; font-weight: 600;">${price}</div>
+              <div style="font-size: 14px; margin-bottom: 4px; color: white;">${dateStr}</div>
+              <div style="font-size: 14px; margin-bottom: 4px;">
+                <span style="color: #9CA3AF;">Price:</span>
+                <span style="color: #3B82F6; font-weight: 500;">${price}</span>
+              </div>
+              <div style="font-size: 14px;">
+                <span style="color: #9CA3AF;">Volume:</span>
+                <span style="color: #3B82F6; font-weight: 500;">${volume}</span>
+              </div>
             `;
             container.style.display = "block";
-
-            const tooltipWidth = container.offsetWidth;
-            const tooltipHeight = container.offsetHeight;
-
-            let left = param.point.x + 20;
-            let top = param.point.y - tooltipHeight - 10;
-
-            if (left + tooltipWidth > chartContainerRef.current!.clientWidth) {
-              left = param.point.x - tooltipWidth - 20;
-            }
-
-            if (top < 0) {
-              top = param.point.y + 10;
-            }
-
-            container.style.left = left + "px";
-            container.style.top = top + "px";
           }
         }
       });
 
-      // Fit content
-      chart.timeScale().fitContent();
-
-      chartRef.current = chart;
-
+      // Handle resize
       const handleResize = () => {
         if (chartContainerRef.current) {
           chart.applyOptions({
             width: chartContainerRef.current.clientWidth,
           });
-          chart.timeScale().fitContent();
         }
       };
 
       window.addEventListener("resize", handleResize);
+
+      chartRef.current = chart;
 
       return () => {
         window.removeEventListener("resize", handleResize);
@@ -231,7 +244,7 @@ const StockChart: React.FC<StockChartProps> = ({ data, timeRange }) => {
 
   return (
     <div className="relative">
-      <div ref={chartContainerRef} className="w-full h-[400px]" />
+      <div ref={chartContainerRef} className="w-full" />
     </div>
   );
 };

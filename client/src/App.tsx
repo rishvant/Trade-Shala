@@ -10,7 +10,7 @@ import LoginByPhone from "./pages/LoginByPhone";
 import LoginByEmail from "./pages/LoginByEmail";
 import Signup from "./pages/Signup";
 import { TradeProvider } from "./context/context";
-import Profile from "./pages/Profile"
+import Profile from "./pages/Profile";
 
 function App() {
   return (
