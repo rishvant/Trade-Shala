@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 import { FaChartLine, FaNewspaper, FaWallet, FaLock } from "react-icons/fa";
 import { searchStockData } from "../services/stockService";
 import { useNavigate } from "react-router-dom";
-import TopGainers from "../components/Topgainers";
+import TopGainers from "../components/TopGainers";
 const Home = () => {
   const [activeTab, setActiveTab] = useState("indices");
   const [searchTerm, setSearchTerm] = useState("");
@@ -38,7 +38,7 @@ const Home = () => {
       {
         breakpoint: 600,
         settings: {
-          slidesToShow: 1,
+          slidesToShow: 2,
           slidesToScroll: 1,
         },
       },
@@ -240,8 +240,6 @@ const Home = () => {
         >
           Your intelligent trading companion for the modern financial markets
         </motion.p>
-
-        
       </motion.div>
 
       {/* Features Grid with lower z-index */}
@@ -367,8 +365,9 @@ const Home = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.8 }}
           className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
-        ><TopGainers></TopGainers></motion.div>
-        
+        >
+          <TopGainers></TopGainers>
+        </motion.div>
       </div>
     </div>
   );
