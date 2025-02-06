@@ -6,51 +6,93 @@ import { useTrade } from "../context/context";
 interface TradingPanelProps {
   currentPrice: number;
   symbol: string;
+  onTradeComplete: (orderData: any) => void;
 }
+
+type TradeType = "INTRADAY" | "DELIVERY" | "FUTURES" | "OPTIONS";
+type OrderType = "MARKET" | "LIMIT" | "SL" | "SL-M";
 
 const TradingPanel: React.FC<TradingPanelProps> = ({
   currentPrice,
   symbol,
+  onTradeComplete
 }) => {
   const { addOrder, balance } = useTrade();
+  const [tradeType, setTradeType] = useState<TradeType>("INTRADAY");
+  const [orderType, setOrderType] = useState<OrderType>("MARKET");
   const [quantity, setQuantity] = useState<number>(1);
-  const [orderType, setOrderType] = useState<"market" | "limit">("market");
   const [limitPrice, setLimitPrice] = useState<number>(currentPrice);
+  const [stopLoss, setStopLoss] = useState<number | null>(null);
+  const [target, setTarget] = useState<number | null>(null);
+  const [triggerPrice, setTriggerPrice] = useState<number | null>(null);
+
+  // For F&O
+  const [expiryDate, setExpiryDate] = useState<string>("");
+  const [strikePrice, setStrikePrice] = useState<number | null>(null);
+  const [optionType, setOptionType] = useState<"CALL" | "PUT">("CALL");
 
   const totalAmount = currentPrice * quantity;
+  const margin = tradeType === "INTRADAY" ? totalAmount * 0.2 : totalAmount; // 20% margin for intraday
 
-  const handleTrade = (action: "buy" | "sell") => {
+  const handleTrade = async (action: "buy" | "sell") => {
     try {
-      if (action === "buy" && totalAmount > balance) {
+      // Validate balance
+      if (action === "buy" && margin > balance) {
         alert("Insufficient balance for this trade");
+        return;
+      }
+
+      // Validate order parameters
+      if (orderType === "LIMIT" && !limitPrice) {
+        alert("Please specify a limit price");
+        return;
+      }
+
+      if ((orderType === "SL" || orderType === "SL-M") && !triggerPrice) {
+        alert("Please specify a trigger price");
         return;
       }
 
       const orderData = {
         symbol,
         type: orderType,
+        tradeType: action.toUpperCase(),
         action,
         quantity,
-        price: orderType === "market" ? currentPrice : limitPrice,
-        limitPrice: orderType === "limit" ? limitPrice : undefined,
+        price: orderType === "MARKET" ? currentPrice : limitPrice,
+        stopLoss,
+        target,
+        triggerPrice,
+        // F&O specific fields
+        ...(tradeType === "OPTIONS" && {
+          expiryDate,
+          strikePrice,
+          optionType,
+        }),
       };
 
-      console.log("Submitting order:", orderData); // Debug log
-      addOrder(orderData);
-
-      // Show success message
+      console.log("Submitting order:", orderData);
+      await addOrder(orderData);
+      onTradeComplete(orderData);
       alert(`${action.toUpperCase()} order placed successfully!`);
-      // Reset quantity
-      setQuantity(1);
+      resetForm();
     } catch (error) {
-      console.error("Order error:", error); // Debug log
+      console.error("Order error:", error);
       alert("Failed to place order. Please try again.");
     }
   };
 
+  const resetForm = () => {
+    setQuantity(1);
+    setLimitPrice(currentPrice);
+    setStopLoss(null);
+    setTarget(null);
+    setTriggerPrice(null);
+  };
+
   return (
     <motion.div
-      className="bg-[#1E222D] p-6 rounded-lg shadow-lg border border-gray-800"
+      className="p-6"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -58,20 +100,41 @@ const TradingPanel: React.FC<TradingPanelProps> = ({
       <h2 className="text-2xl font-bold mb-6 text-white">Place Order</h2>
 
       <div className="space-y-4">
+        {/* Trade Type Selection */}
+        <div>
+          <label className="block text-sm font-medium text-gray-400">
+            Trade Type
+          </label>
+          <select
+            className="mt-1 block w-full rounded-md bg-[#262932] text-white border-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            value={tradeType}
+            onChange={(e) => setTradeType(e.target.value as TradeType)}
+          >
+            <option value="INTRADAY">Intraday</option>
+            <option value="DELIVERY">Delivery</option>
+            <option value="FUTURES">Futures</option>
+            <option value="OPTIONS">Options</option>
+          </select>
+        </div>
+
+        {/* Order Type */}
         <div>
           <label className="block text-sm font-medium text-gray-400">
             Order Type
           </label>
           <select
-            className="mt-1 block w-full rounded-md bg-[#262932] text-white border-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-1"
+            className="mt-1 block w-full rounded-md bg-[#262932] text-white border-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             value={orderType}
-            onChange={(e) => setOrderType(e.target.value as "market" | "limit")}
+            onChange={(e) => setOrderType(e.target.value as OrderType)}
           >
-            <option value="market">Market Order</option>
-            <option value="limit">Limit Order</option>
+            <option value="MARKET">Market</option>
+            <option value="LIMIT">Limit</option>
+            <option value="SL">Stop Loss</option>
+            <option value="SL-M">Stop Loss Market</option>
           </select>
         </div>
 
+        {/* Quantity */}
         <div>
           <label className="block text-sm font-medium text-gray-400">
             Quantity
@@ -85,7 +148,8 @@ const TradingPanel: React.FC<TradingPanelProps> = ({
           />
         </div>
 
-        {orderType === "limit" && (
+        {/* Price Fields */}
+        {orderType !== "MARKET" && (
           <div>
             <label className="block text-sm font-medium text-gray-400">
               Limit Price
@@ -100,6 +164,81 @@ const TradingPanel: React.FC<TradingPanelProps> = ({
           </div>
         )}
 
+        {/* Stop Loss & Target */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-400">
+              Stop Loss
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              value={stopLoss || ""}
+              onChange={(e) => setStopLoss(Number(e.target.value))}
+              className="mt-1 block w-full rounded-md bg-[#262932] text-white border-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-400">
+              Target
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              value={target || ""}
+              onChange={(e) => setTarget(Number(e.target.value))}
+              className="mt-1 block w-full rounded-md bg-[#262932] text-white border-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        {/* F&O Specific Fields */}
+        {tradeType === "OPTIONS" && (
+          <>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-400">
+                  Expiry Date
+                </label>
+                <input
+                  type="date"
+                  value={expiryDate}
+                  onChange={(e) => setExpiryDate(e.target.value)}
+                  className="mt-1 block w-full rounded-md bg-[#262932] text-white border-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400">
+                  Strike Price
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={strikePrice || ""}
+                  onChange={(e) => setStrikePrice(Number(e.target.value))}
+                  className="mt-1 block w-full rounded-md bg-[#262932] text-white border-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-400">
+                Option Type
+              </label>
+              <select
+                className="mt-1 block w-full rounded-md bg-[#262932] text-white border-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                value={optionType}
+                onChange={(e) =>
+                  setOptionType(e.target.value as "CALL" | "PUT")
+                }
+              >
+                <option value="CALL">Call</option>
+                <option value="PUT">Put</option>
+              </select>
+            </div>
+          </>
+        )}
+
+        {/* Action Buttons */}
         <div className="flex gap-4 pt-4">
           <button
             onClick={() => handleTrade("buy")}
@@ -118,18 +257,23 @@ const TradingPanel: React.FC<TradingPanelProps> = ({
         </div>
       </div>
 
+      {/* Order Summary */}
       <div className="mt-6 pt-6 border-t border-gray-700">
-        <div className="flex justify-between items-center">
-          <span className="text-gray-400">Estimated Total:</span>
-          <span className="text-xl font-bold text-white">
-            ₹{(currentPrice * quantity).toFixed(2)}
-          </span>
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="text-gray-400">Order Value:</span>
+            <span className="text-white">₹{totalAmount.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-gray-400">Required Margin:</span>
+            <span className="text-white">₹{margin.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-gray-400">Available Balance:</span>
+            <span className="text-white">₹{balance.toFixed(2)}</span>
+          </div>
         </div>
       </div>
-
-      <p className="text-sm text-gray-400 text-center mt-4">
-        Available Balance: ₹{balance.toFixed(2)}
-      </p>
     </motion.div>
   );
 };
