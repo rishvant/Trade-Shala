@@ -5,6 +5,8 @@ import TradingPanel from "../components/TradingPanel";
 import { fetchStockData, searchStockData } from "../services/stockService";
 import { useParams } from "react-router-dom";
 import { StockName } from "../types/types";
+import { io } from "socket.io-client";
+import dayjs from "dayjs";
 
 const transformCandleData = (data: any) => {
   if (!data?.candles) return [];
@@ -63,28 +65,80 @@ function Stock() {
     fetchStockNameData();
   }, [stockName]);
 
-  // Update data periodically if market is open
+  // Establish a WebSocket connection to listen to stock price updates
   useEffect(() => {
-    if (marketStatus === "open") {
-      const interval = setInterval(() => {
-        // In a real app, fetch new data here
-        // For now, we'll just update the last price slightly
-        setStockData((prevData) => {
-          if (prevData.length === 0) return prevData;
-          const lastPrice = prevData[prevData.length - 1].price;
-          const newPrice = lastPrice + (Math.random() - 0.5) * 2;
-          const newData = [...prevData];
-          newData[newData.length - 1] = {
-            ...newData[newData.length - 1],
-            price: newPrice,
-          };
-          return newData;
-        });
-      }, 1000);
+    const socket = io("http://localhost:3000"); // WebSocket connection
 
-      return () => clearInterval(interval);
-    }
-  }, [marketStatus]);
+    // Handle market status updates
+    socket.on("marketStatusChange", (status: string) => {
+      console.log(status);
+    });
+
+    socket.emit("selectSymbol", stockName);
+
+    socket.on("symbolData", (newData) => {
+      if (newData && newData.type === "live_feed") {
+        // Extract the dynamic stock key
+        const stockKey = Object.keys(newData.feeds || {})[0];
+
+        if (!stockKey) {
+          console.log("No valid stock key found");
+          return;
+        }
+
+        console.log(newData);
+
+        const ohlcData =
+          newData.feeds[stockKey]?.ff?.marketFF?.marketOHLC?.ohlc;
+
+        console.log("OHLC Data:", ohlcData);
+
+        if (!ohlcData) {
+          console.log("No OHLC data found");
+          return;
+        }
+
+        // Filter for daily interval data
+        const filteredData = ohlcData.filter(
+          (data: any) => data.interval === "1d"
+        );
+
+        if (filteredData.length === 0) {
+          console.log("No matching 1d interval data");
+          return;
+        }
+
+        // Transform data
+        const transformedData = filteredData.map((data: any) => ({
+          time: dayjs(data.time).format("YYYY-MM-DDTHH:mm:ssZ"),
+          price: data.close,
+          volume: data.volume,
+        }));
+
+        console.log("Transformed Data:", transformedData);
+
+        // Merge and remove duplicates using a Map
+        setStockData((prevData) => {
+          const mergedData = [...prevData, ...transformedData];
+
+          const uniqueData = Array.from(
+            new Map(mergedData.map((item) => [item.time, item])).values()
+          );
+
+          // Sort data by timestamp
+          return uniqueData.sort(
+            (a, b) => new Date(a.time).getTime() - new Date(b.time).getTime()
+          );
+        });
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [stockName]);
+
+  console.log(stockData);
 
   const currentPrice =
     stockData.length > 0 ? stockData[stockData.length - 1].price : 0;
@@ -170,7 +224,10 @@ function Stock() {
                 </div>
               </div>
 
-              <StockChart data={stockData} timeRange={timeRange} />
+              <StockChart
+                data={[...stockData].sort((a, b) => a.time - b.time)}
+                timeRange={timeRange}
+              />
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-lg">

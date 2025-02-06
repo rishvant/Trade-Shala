@@ -23,9 +23,11 @@
     "http": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
+    "node-schedule": "^2.1.1",
     "nodemon": "^3.1.9",
     "otp-generator": "^4.0.1",
     "path": "^0.12.7",
+    "socket.io": "^4.8.1",
     "twilio": "^5.4.3",
     "upstox-js-sdk": "^2.13.0"
   }

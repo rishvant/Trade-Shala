@@ -7,6 +7,7 @@ import cors from "cors";
 import stocksRoutes from "./routes/stocksRoutes.js";
 import authRoutes from './routes/authRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
+import connectSocket from "./lib/socketio.js";
 
 const PORT = process.env.PORT || 3000;
 
@@ -23,6 +24,8 @@ app.get('/', (req, res) => {
     res.send(`<h1>this is server</h1>`);
 })
 const server = http.createServer(app);
+
+await connectSocket(server);
 
 server.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

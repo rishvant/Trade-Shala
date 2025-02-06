@@ -4,9 +4,14 @@ import protobuf from 'protobufjs';
 import schedule from 'node-schedule';
 // @ts-ignore
 import * as UpstoxClient from 'upstox-js-sdk';
-import { getAccessToken } from '../util/tokenStore';
-import fetchInstrumentDetails from '../util/fetchInstrumentDetails';
-import { getMarketStatus } from '../util/fetchStockData';
+// import { getAccessToken } from '../util/tokenStore';
+import fetchInstrumentDetails from '../util/fetchInstrumentDetails.js';
+import { getMarketStatus } from '../util/fetchStockData.js';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import Order from '../models/Order.Model.js';
+import Portfolio from '../models/Portfolio.Model.js';
+import User from '../models/User.Model.js';
 
 // Initialize global variables
 let protobufRoot = null;
@@ -14,8 +19,11 @@ let defaultClient = UpstoxClient.ApiClient.instance;
 let apiVersion = '2.0';
 let OAUTH2 = defaultClient.authentications['OAUTH2'];
 
-const upstoxToken = getAccessToken();
-OAUTH2.accessToken = upstoxToken || process.env.UPSTOX_ACCESS_TOKEN;
+// const upstoxToken = getAccessToken();
+OAUTH2.accessToken = process.env.UPSTOX_ACCESS_TOKEN;
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Function to authorize the market data feed
 const getMarketFeedUrl = async () => {
@@ -183,6 +191,221 @@ const connectSocket = async (app) => {
       } else {
         // console.log(`WebSocket already exists for client ${socket.id}`);
         return;
+      }
+    });
+
+    // Handle order placement event
+    socket.on('placeOrder', async (orderDetails) => {
+      try {
+        const {
+          stock_symbol,
+          order_type,
+          order_category,
+          type,
+          quantity,
+          execution_price,
+          completion_price,
+          limit_price,
+          user_id,
+        } = orderDetails;
+
+        // Validate the required fields
+        if (!stock_symbol || !order_type || !order_category || !type || !quantity || !execution_price || !user_id) {
+          socket.emit('error', 'All order details are required.');
+          return;
+        }
+
+        // Validate user existence (optional but recommended)
+        const user = await User.findById(user_id);
+        if (!user) {
+          socket.emit('error', 'User not found.');
+          return;
+        }
+
+        // Validate quantity (must be a positive number)
+        if (quantity <= 0 || isNaN(quantity)) {
+          socket.emit('error', 'Quantity must be a positive number.');
+          return;
+        }
+
+        // Validate prices: execution_price and completion_price must be positive numbers
+        if (execution_price <= 0 || isNaN(execution_price)) {
+          socket.emit('error', 'Execution price must be a positive number.');
+          return;
+        }
+
+        if (completion_price <= 0 || isNaN(completion_price)) {
+          socket.emit('error', 'Completion price must be a positive number.');
+          return;
+        }
+
+        // Validate limit_price: only applicable if the order type is 'limit'
+        if (order_type === 'limit') {
+          if (!limit_price || limit_price <= 0 || isNaN(limit_price)) {
+            socket.emit('error', 'Limit price must be a positive number for a limit order.');
+            return;
+          }
+          // If order type is 'limit', ensure execution_price is within the limit_price
+          if (execution_price > limit_price) {
+            socket.emit('error', 'Execution price cannot be higher than the limit price.');
+            return;
+          }
+        } else if (order_type === 'market') {
+          // For market orders, limit_price should not be provided
+          if (limit_price) {
+            socket.emit('error', 'Limit price should not be provided for market orders.');
+            return;
+          }
+        } else {
+          socket.emit('error', 'Invalid order type.');
+          return;
+        }
+
+        // Create and save the order in the database
+        const newOrder = new Order({
+          stock_symbol,
+          order_type,
+          order_category,
+          type,
+          quantity,
+          execution_price,
+          completion_price,
+          limit_price: order_type === 'limit' ? limit_price : undefined, // Save limit_price only for limit orders
+          user_id,
+          order_status: 'pending', // Set initial status as 'pending'
+        });
+
+        await newOrder.save();
+
+        // Update portfolio
+        const portfolio = await Portfolio.findOne({ user_id });
+        if (!portfolio) {
+          // If portfolio doesn't exist, create a new one
+          const newPortfolio = new Portfolio({
+            user_id,
+            holdings: [
+              {
+                stock_symbol,
+                quantity: order_category === 'buy' ? quantity : -quantity,
+                average_price: execution_price,
+              },
+            ],
+          });
+          await newPortfolio.save();
+        } else {
+          const stockIndex = portfolio.holdings.findIndex(
+            (stock) => stock.stock_symbol === stock_symbol
+          );
+
+          if (stockIndex === -1) {
+            // If stock doesn't exist in portfolio, add it
+            portfolio.stocks.push({
+              stock_symbol,
+              quantity: order_category === 'buy' ? quantity : -quantity,
+              average_price: execution_price,
+            });
+          } else {
+            // If stock exists in portfolio, update the quantity
+            portfolio.stocks[stockIndex].quantity +=
+              order_category === 'buy' ? quantity : -quantity;
+            // Optionally, calculate a new average price for the stock based on previous prices
+          }
+
+          await portfolio.save();
+        }
+
+        // Update virtual balance for the user
+        if (order_category === 'buy') {
+          // Deduct from the virtual balance when buying stocks
+          const totalCost = execution_price * quantity;
+          if (user.virtualBalance < totalCost) {
+            socket.emit('error', 'Insufficient virtual balance.');
+            return;
+          }
+          user.virtualBalance -= totalCost;
+        } else if (order_category === 'sell') {
+          // Add to the virtual balance when selling stocks
+          const totalSaleAmount = execution_price * quantity;
+          user.virtualBalance += totalSaleAmount;
+        }
+
+        await user.save();
+
+        // Emit the response with the created order
+        socket.emit('orderPlaced', { message: 'Order placed successfully', order: newOrder });
+        console.log('🚀 Order placed successfully:', newOrder);
+
+        if (order_category === 'intraday') {
+          scheduleIntradayOrderExecution(newOrder._id);
+        }
+      } catch (error) {
+        console.error('Error placing order:', error);
+        socket.emit('error', 'Error placing the order.');
+      }
+    });
+
+    // Handle price reached limit
+    socket.on('priceReachedLimit', async (data) => {
+      try {
+        const { orderId, marketPrice } = data;
+        const order = await Order.findById(orderId);
+
+        // Ensure the order is a limit order and check if the price meets the condition
+        if (order && order.order_type === 'limit') {
+          let isFulfilled = false;
+
+          // Buy Order - Fulfilled if market price <= limit price
+          if (order.order_category === 'buy' && marketPrice <= order.limit_price) {
+            isFulfilled = true;
+          }
+
+          // Sell Order - Fulfilled if market price >= limit price
+          if (order.order_category === 'sell' && marketPrice >= order.limit_price) {
+            isFulfilled = true;
+          }
+
+          // If the order is fulfilled, update the status and execute the transaction
+          if (isFulfilled) {
+            order.order_status = 'fulfilled';
+            await order.save();
+
+            // Update the portfolio when the order is fulfilled
+            const portfolio = await Portfolio.findOne({ user_id: order.user_id });
+            const stockIndex = portfolio.stocks.findIndex(
+              (stock) => stock.stock_symbol === order.stock_symbol
+            );
+
+            if (stockIndex !== -1) {
+              // If it's a buy order, increase quantity
+              if (order.order_category === 'buy') {
+                portfolio.stocks[stockIndex].quantity += order.quantity;
+              }
+              // If it's a sell order, decrease quantity
+              if (order.order_category === 'sell') {
+                portfolio.stocks[stockIndex].quantity -= order.quantity;
+              }
+            }
+
+            await portfolio.save();
+
+            // Update the user's virtual balance
+            const user = await User.findById(order.user_id);
+            if (order.order_category === 'buy') {
+              const totalCost = order.execution_price * order.quantity;
+              user.virtualBalance -= totalCost;
+            } else if (order.order_category === 'sell') {
+              const totalSaleAmount = order.execution_price * order.quantity;
+              user.virtualBalance += totalSaleAmount;
+            }
+
+            await user.save();
+
+            // Emit order status update
+            socket.emit('orderStatusUpdated', { orderId: order._id, newStatus: 'fulfilled' });
+          }
+        }
+      } catch (error) {
+        socket.emit('error', 'Error updating order status.');
       }
     });
 
