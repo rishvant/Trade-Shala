@@ -4,10 +4,11 @@ import I1 from "../assets/loginn.jpeg";
 import { FaGoogle } from "react-icons/fa";
 import { generateOTP, loginByPhone } from "../services/authService";
 import { toast } from "sonner";
-
+import { account, OAuthProvider } from "../components/appwrite";
 function LoginByPhone() {
   const [showOTP, setShowOTP] = useState(false);
   const navigate = useNavigate();
+
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState("");
   const [timer, setTimer] = useState(60);
@@ -59,9 +60,18 @@ function LoginByPhone() {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    console.log("Google Sign In clicked");
+  const handleGoogleSignIn = async () => {
+    try {
+      await account.createOAuth2Session(
+        OAuthProvider.Google, // Use enum instead of string
+        "http://localhost:5173/", // Success Redirect URI
+        "http://localhost:5173/fail" // Failure Redirect URI
+      );
+    } catch (error) {
+      console.error("Google Sign-In Error:", error);
+    }
   };
+
 
   useEffect(() => {
     let interval: NodeJS.Timeout;

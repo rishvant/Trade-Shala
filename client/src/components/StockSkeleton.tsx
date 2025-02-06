@@ -1,4 +1,3 @@
-import React from "react";
 
 const StockSkeleton = () => {
   return (
@@ -90,22 +89,22 @@ const StockSkeleton = () => {
           <div className="animate-pulse">
             <div className="bg-[#1E222D] p-6 rounded-lg shadow-lg border border-gray-800">
               <div className="h-8 w-32 bg-gray-700/50 rounded-md mb-6"></div>
-              
+
               {/* Order Type Selector */}
               <div className="h-10 w-full bg-gray-700/50 rounded-md mb-4"></div>
-              
+
               {/* Quantity Input */}
               <div className="h-10 w-full bg-gray-700/50 rounded-md mb-4"></div>
-              
+
               {/* Price Display */}
               <div className="h-16 w-full bg-gray-700/50 rounded-md mb-6"></div>
-              
+
               {/* Action Buttons */}
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="h-12 bg-green-500/30 rounded-md"></div>
                 <div className="h-12 bg-red-500/30 rounded-md"></div>
               </div>
-              
+
               {/* Balance */}
               <div className="h-6 w-full bg-gray-700/50 rounded-md"></div>
             </div>

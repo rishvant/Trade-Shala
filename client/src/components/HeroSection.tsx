@@ -5,7 +5,7 @@ import { MarketTickerProps } from "../types/types";
 import { motion } from "framer-motion";
 import { searchStockData } from "../services/stockService";
 import { useNavigate } from "react-router-dom";
-
+import CurrentPositions from "./CurrentPositions";
 // Define the props interface for MarketTicker
 const MarketTicker: React.FC<MarketTickerProps> = ({
   icon,
@@ -25,53 +25,53 @@ const MarketTicker: React.FC<MarketTickerProps> = ({
   </div>
 );
 
-const GlitterEffect = () => {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {[...Array(50)].map((_, i) => (
-        <motion.div
-          key={i}
-          initial={{
-            opacity: 0,
-            scale: 0,
-            x: Math.random() * window.innerWidth,
-            y: Math.random() * window.innerHeight,
-          }}
-          animate={{
-            opacity: [0, 0.8, 0],
-            scale: [0, Math.random() * 0.5 + 0.5, 0],
-            x: [
-              Math.random() * window.innerWidth,
-              Math.random() * window.innerWidth,
-              Math.random() * window.innerWidth,
-            ],
-            y: [
-              Math.random() * window.innerHeight,
-              Math.random() * window.innerHeight,
-              Math.random() * window.innerHeight,
-            ],
-          }}
-          transition={{
-            duration: Math.random() * 3 + 2,
-            repeat: Infinity,
-            repeatDelay: Math.random() * 1,
-            ease: "easeInOut",
-          }}
-          className="absolute w-1 h-1 bg-white rounded-full"
-          style={{
-            filter: `blur(${Math.random() * 2}px)`,
-            boxShadow: `
-              0 0 ${Math.random() * 4 + 2}px #fff,
-              0 0 ${Math.random() * 8 + 4}px #fff,
-              0 0 ${Math.random() * 12 + 8}px rgba(255,255,255,0.5)
-            `,
-            backgroundColor: `hsl(${Math.random() * 60 + 180}, 100%, 90%)`,
-          }}
-        />
-      ))}
-    </div>
-  );
-};
+// const GlitterEffect = () => {
+//   return (
+//     <div className="absolute inset-0 overflow-hidden pointer-events-none">
+//       {[...Array(50)].map((_, i) => (
+//         <motion.div
+//           key={i}
+//           initial={{
+//             opacity: 0,
+//             scale: 0,
+//             x: Math.random() * window.innerWidth,
+//             y: Math.random() * window.innerHeight,
+//           }}
+//           animate={{
+//             opacity: [0, 0.8, 0],
+//             scale: [0, Math.random() * 0.5 + 0.5, 0],
+//             x: [
+//               Math.random() * window.innerWidth,
+//               Math.random() * window.innerWidth,
+//               Math.random() * window.innerWidth,
+//             ],
+//             y: [
+//               Math.random() * window.innerHeight,
+//               Math.random() * window.innerHeight,
+//               Math.random() * window.innerHeight,
+//             ],
+//           }}
+//           transition={{
+//             duration: Math.random() * 3 + 2,
+//             repeat: Infinity,
+//             repeatDelay: Math.random() * 1,
+//             ease: "easeInOut",
+//           }}
+//           className="absolute w-1 h-1 bg-white rounded-full"
+//           style={{
+//             filter: `blur(${Math.random() * 2}px)`,
+//             boxShadow: `
+//               0 0 ${Math.random() * 4 + 2}px #fff,
+//               0 0 ${Math.random() * 8 + 4}px #fff,
+//               0 0 ${Math.random() * 12 + 8}px rgba(255,255,255,0.5)
+//             `,
+//             backgroundColor: `hsl(${Math.random() * 60 + 180}, 100%, 90%)`,
+//           }}
+//         />
+//       ))}
+//     </div>
+//   );
+// };
 
 const HeroSection = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -125,11 +125,14 @@ const HeroSection = () => {
   return (
     <div>
       <div className="sm:px-8 relative min-h-screen bg-gradient-to-br from-[#131722] to-[#1e222d] overflow-hidden">
-        <img
+        {/* <img
           src={image}
           alt="Background"
           className="absolute inset-0 w-full h-full object-cover"
-        />
+        /> */}
+        {/* <div className="w-1/2 absolute inset-0">
+          <CurrentPositions />
+        </div> */}
 
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-purple-500/20" />
 
@@ -238,7 +241,7 @@ const HeroSection = () => {
           </div>
         </div>
       </div>
-      <GlitterEffect />
+      {/* <GlitterEffect /> */}
     </div>
   );
 };

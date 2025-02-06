@@ -151,7 +151,7 @@ const Home = () => {
   const GlitterEffect = () => {
     return (
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
+        {[...Array(50)].map((_, i) => (
           <motion.div
             key={i}
             initial={{
@@ -161,21 +161,34 @@ const Home = () => {
               y: Math.random() * window.innerHeight,
             }}
             animate={{
-              opacity: [0, 1, 0],
-              scale: [0, 1, 0],
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight,
+              opacity: [0, 0.8, 0],
+              scale: [0, Math.random() * 0.5 + 0.5, 0],
+              x: [
+                Math.random() * window.innerWidth,
+                Math.random() * window.innerWidth,
+                Math.random() * window.innerWidth,
+              ],
+              y: [
+                Math.random() * window.innerHeight,
+                Math.random() * window.innerHeight,
+                Math.random() * window.innerHeight,
+              ],
             }}
             transition={{
-              duration: Math.random() * 2 + 1,
+              duration: Math.random() * 3 + 2,
               repeat: Infinity,
-              repeatDelay: Math.random() * 2,
+              repeatDelay: Math.random() * 1,
               ease: "easeInOut",
             }}
             className="absolute w-1 h-1 bg-white rounded-full"
             style={{
-              filter: "blur(1px)",
-              boxShadow: "0 0 4px #fff, 0 0 8px #fff",
+              filter: `blur(${Math.random() * 2}px)`,
+              boxShadow: `
+              0 0 ${Math.random() * 4 + 2}px #fff,
+              0 0 ${Math.random() * 8 + 4}px #fff,
+              0 0 ${Math.random() * 12 + 8}px rgba(255,255,255,0.5)
+            `,
+              backgroundColor: `hsl(${Math.random() * 60 + 180}, 100%, 90%)`,
             }}
           />
         ))}
@@ -217,56 +230,57 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-[#131722] text-white">
       {/* Hero Section */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="relative pt-20 pb-16 px-4 sm:px-6 lg:px-8 text-center"
-      >
+      <motion.div>
         <GlitterEffect />
-        <motion.h1
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent"
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="relative pt-20 pb-16 px-4 sm:px-6 lg:px-8 text-center"
         >
-          Welcome to Trade-GPT
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="text-xl text-gray-400 max-w-2xl mx-auto mb-8"
+          <motion.h1
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent"
+          >
+            Welcome to Trade-GPT
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="text-xl text-gray-400 max-w-2xl mx-auto mb-8"
+          >
+            Your intelligent trading companion for the modern financial markets
+          </motion.p>
+        </motion.div>
+
+        {/* Features Grid with lower z-index */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 z-0"
         >
-          Your intelligent trading companion for the modern financial markets
-        </motion.p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, index) => (
+              <motion.div
+                key={index}
+                variants={itemVariants}
+                whileHover={{ scale: 1.05 }}
+                className="bg-[#1E222D] p-6 rounded-xl border border-green-500/20 hover:border-green-500/40 transition-colors duration-300"
+              >
+                <div className="text-green-500 mb-4">{feature.icon}</div>
+                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                <p className="text-gray-400">{feature.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
       </motion.div>
-
-      {/* Features Grid with lower z-index */}
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 z-0"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {features.map((feature, index) => (
-            <motion.div
-              key={index}
-              variants={itemVariants}
-              whileHover={{ scale: 1.05 }}
-              className="bg-[#1E222D] p-6 rounded-xl border border-green-500/20 hover:border-green-500/40 transition-colors duration-300"
-            >
-              <div className="text-green-500 mb-4">{feature.icon}</div>
-              <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-              <p className="text-gray-400">{feature.description}</p>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
-
       {/* Stats Section */}
-      <motion.div
+      {/* <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.6 }}
@@ -290,7 +304,7 @@ const Home = () => {
             </motion.div>
           </div>
         </div>
-      </motion.div>
+      </motion.div> */}
 
       {/* CTA Section */}
       <motion.div
