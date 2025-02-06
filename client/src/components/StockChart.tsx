@@ -236,7 +236,7 @@ useEffect(() => {
 
   return (
     <div className="relative">
-      <div ref={chartContainerRef} className="w-full h-[400px]" />
+      <div ref={chartContainerRef} className="w-full" />
     </div>
   );
 };

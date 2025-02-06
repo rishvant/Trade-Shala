@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Search } from "lucide-react";
+import React, { useState, useRef } from "react";
+import { Search, Loader2 } from "lucide-react";
 import image from "../assets/ttt.jpg";
 import { MarketTickerProps } from "../types/types";
 import { motion } from "framer-motion";
@@ -77,10 +77,16 @@ const HeroSection = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout>();
   const navigate = useNavigate();
 
   const handleSearch = async (value: string) => {
     setSearchTerm(value);
+
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
 
     if (value.length < 2) {
       setSearchResults([]);
@@ -88,20 +94,26 @@ const HeroSection = () => {
     }
 
     setIsLoading(true);
-    try {
-      const response = await searchStockData(value);
-      setSearchResults(
-        Object.entries(response.data).map(([symbol, name]) => ({
-          symbol,
-          name,
-        }))
-      );
-    } catch (error) {
-      console.error("Search error:", error);
-      setSearchResults([]);
-    } finally {
-      setIsLoading(false);
-    }
+
+    // Debounce search with shorter timeout (200ms)
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const response = await searchStockData(value);
+        setSearchResults(
+          Object.entries(response.data)
+            .map(([symbol, name]) => ({
+              symbol,
+              name,
+            }))
+            .slice(0, 8) // Limit to 8 results for better performance
+        );
+      } catch (error) {
+        console.error("Search error:", error);
+        setSearchResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 200); // Reduced from default 300ms to 200ms
   };
 
   const handleStockSelect = (symbol: string) => {
@@ -142,42 +154,53 @@ const HeroSection = () => {
                   placeholder="Search for stocks..."
                   className="w-full px-12 py-4 bg-white rounded-full text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                 />
+                {isLoading && (
+                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                    <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
+                  </div>
+                )}
+              </div>
 
-                {/* Search Results Dropdown */}
-                {searchTerm && searchResults.length > 0 && (
-                  <div className="absolute w-full mt-2 bg-white rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
-                    {searchResults.map(({ symbol, name }) => (
-                      <button
+              {/* Search Results Dropdown */}
+              {searchTerm && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute w-full mt-2 bg-white rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto"
+                >
+                  {isLoading ? (
+                    <div className="p-4 text-center text-gray-600">
+                      <div className="flex items-center justify-center gap-2">
+                        <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
+                        <span>Searching...</span>
+                      </div>
+                    </div>
+                  ) : searchResults.length > 0 ? (
+                    searchResults.map(({ symbol, name }) => (
+                      <motion.button
                         key={symbol}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
                         onClick={() => handleStockSelect(symbol)}
-                        className="w-full px-4 py-3 text-left hover:bg-gray-100 flex items-center justify-between group"
+                        className="w-full px-4 py-3 text-left hover:bg-gray-100 flex items-center justify-between group transition-colors duration-150"
                       >
                         <div>
                           <div className="text-black font-medium">{symbol}</div>
                           <div className="text-sm text-gray-600">{name}</div>
                         </div>
-                        <span className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                           View →
                         </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* Loading State */}
-                {isLoading && (
-                  <div className="absolute w-full mt-2 bg-white rounded-lg p-4 text-center text-gray-600">
-                    Searching...
-                  </div>
-                )}
-
-                {/* No Results State */}
-                {searchTerm && !isLoading && searchResults.length === 0 && (
-                  <div className="absolute w-full mt-2 bg-white rounded-lg p-4 text-center text-gray-600">
-                    No stocks found
-                  </div>
-                )}
-              </div>
+                      </motion.button>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-gray-600">
+                      No stocks found
+                    </div>
+                  )}
+                </motion.div>
+              )}
             </div>
 
             <div className="flex space-x-4 overflow-x-auto pb-4">
