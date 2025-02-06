@@ -1,14 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Clock,
-  ArrowUpDown,
-  TrendingUp,
-  TrendingDown,
-  Activity,
-  DollarSign,
-  BarChart2,
-  Volume2,
-} from "lucide-react";
+import { Clock, ArrowUpDown } from "lucide-react";
 import StockChart from "../components/StockChart";
 import TradingPanel from "../components/TradingPanel";
 import { fetchStockData, searchStockData } from "../services/stockService";
@@ -16,9 +7,6 @@ import { useParams } from "react-router-dom";
 import { StockName } from "../types/types";
 import { io } from "socket.io-client";
 import dayjs from "dayjs";
-import Positions from "../components/Positions";
-import { motion } from "framer-motion";
-import StockSkeleton from "../components/StockSkeleton";
 
 const transformCandleData = (data: any) => {
   if (!data?.candles) return [];
@@ -41,20 +29,17 @@ function Stock() {
     shortName: "",
     fullName: "",
   });
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true);
       try {
         const response = await fetchStockData(stockName);
+        console.log(response);
         const transformedData = transformCandleData(response.data.data);
         setStockData(transformedData);
         setMarketStatus(response.data.marketStatus);
       } catch (error) {
         console.error("Error fetching stock data:", error);
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -170,97 +155,67 @@ function Stock() {
     // For now, we'll keep the same data
   };
 
-  if (isLoading) {
-    return <StockSkeleton />;
-  }
-
   return (
-    <div className="min-h-screen bg-[#131722]">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-[#1E222D] border-b border-gray-800"
-      >
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold text-white">
-                  {stockNameData.shortName}
-                </h1>
-                <span className="px-2 py-1 text-sm bg-blue-500/20 text-blue-400 rounded">
-                  NSE
-                </span>
-              </div>
-              <p className="text-gray-400 text-sm">{stockNameData.fullName}</p>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <ArrowUpDown className="h-8 w-8 text-blue-600" />
+              <h1 className="ml-2 text-2xl font-bold text-gray-900">
+                StockTrader Pro
+              </h1>
             </div>
-
-            <div className="flex items-center gap-6">
-              <div className="text-right">
-                <p className="text-2xl font-bold text-white">
-                  ₹{currentPrice.toFixed(2)}
-                </p>
-                <div
-                  className={`flex items-center gap-1 ${
-                    priceChange >= 0 ? "text-green-500" : "text-red-500"
-                  }`}
-                >
-                  {priceChange >= 0 ? (
-                    <TrendingUp size={16} />
-                  ) : (
-                    <TrendingDown size={16} />
-                  )}
-                  <span>
-                    {priceChange >= 0 ? "+" : ""}
-                    {priceChange.toFixed(2)}({priceChangePercent.toFixed(2)}%)
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 px-4 py-2 bg-[#262932] rounded-lg">
-                <Clock
-                  size={16}
-                  className={
-                    marketStatus === "open" ? "text-green-500" : "text-red-500"
-                  }
-                />
-                <span
-                  className={`text-sm font-medium ${
-                    marketStatus === "open" ? "text-green-500" : "text-red-500"
-                  }`}
-                >
-                  {marketStatus.toUpperCase()}
-                </span>
-              </div>
+            <div className="flex items-center space-x-2">
+              <Clock className="h-5 w-5 text-gray-500" />
+              <span
+                className={`${
+                  marketStatus === "open" ? "text-green-600" : "text-red-600"
+                }`}
+              >
+                Market {marketStatus.toUpperCase()}
+              </span>
             </div>
           </div>
         </div>
-      </motion.div>
+      </header>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Chart and Stats */}
+      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            {/* Chart Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-[#1E222D] p-6 rounded-2xl shadow-lg border border-gray-800"
-            >
-              {/* Time Range Selector */}
+            <div className="bg-white p-6 rounded-lg shadow-lg">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-white">Price Chart</h2>
-                <div className="flex gap-2">
+                <div>
+                  <h2 className="text-2xl font-bold">
+                    {stockNameData.shortName}
+                  </h2>
+                  <p className="text-gray-600">{stockNameData.fullName}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-3xl font-bold">
+                    ₹{currentPrice.toFixed(2)}
+                  </p>
+                  <p
+                    className={`${
+                      priceChange >= 0 ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
+                    {priceChange >= 0 ? "+" : ""}
+                    {priceChange.toFixed(2)} ({priceChangePercent.toFixed(2)}%)
+                  </p>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <div className="flex space-x-2">
                   {["1D", "1W", "1M", "3M", "1Y"].map((range) => (
                     <button
                       key={range}
                       onClick={() => handleTimeRangeChange(range)}
-                      className={`px-4 py-2 rounded-lg transition-colors ${
+                      className={`px-4 py-2 rounded-md ${
                         timeRange === range
                           ? "bg-blue-600 text-white"
-                          : "bg-[#262932] text-gray-400 hover:bg-[#2B2F3A]"
+                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                       }`}
                     >
                       {range}
@@ -281,53 +236,24 @@ function Stock() {
                 <div>
                   <p className="text-gray-600">Open</p>
                   <p className="font-bold">
-              <StockChart data={stockData} timeRange={timeRange} />
-            </motion.div>
-
-            {/* Statistics Grid */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="bg-[#1E222D] p-6 rounded-2xl shadow-lg border border-gray-800"
-            >
-              <h2 className="text-xl font-bold text-white mb-6">
-                Market Statistics
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div className="bg-[#262932] p-4 rounded-xl">
-                  <div className="flex items-center gap-2 text-gray-400 mb-2">
-                    <Activity size={18} />
-                    <span>Open</span>
-                  </div>
-                  <p className="text-xl font-bold text-white">
                     ₹{stockData[0]?.price.toFixed(2) || "0.00"}
                   </p>
                 </div>
-                <div className="bg-[#262932] p-4 rounded-xl">
-                  <div className="flex items-center gap-2 text-gray-400 mb-2">
-                    <TrendingUp size={18} />
-                    <span>High</span>
-                  </div>
-                  <p className="text-xl font-bold text-white">
+                <div>
+                  <p className="text-gray-600">High</p>
+                  <p className="font-bold">
                     ₹{Math.max(...stockData.map((d) => d.price)).toFixed(2)}
                   </p>
                 </div>
-                <div className="bg-[#262932] p-4 rounded-xl">
-                  <div className="flex items-center gap-2 text-gray-400 mb-2">
-                    <TrendingDown size={18} />
-                    <span>Low</span>
-                  </div>
-                  <p className="text-xl font-bold text-white">
+                <div>
+                  <p className="text-gray-600">Low</p>
+                  <p className="font-bold">
                     ₹{Math.min(...stockData.map((d) => d.price)).toFixed(2)}
                   </p>
                 </div>
-                <div className="bg-[#262932] p-4 rounded-xl">
-                  <div className="flex items-center gap-2 text-gray-400 mb-2">
-                    <Volume2 size={18} />
-                    <span>Volume</span>
-                  </div>
-                  <p className="text-xl font-bold text-white">
+                <div>
+                  <p className="text-gray-600">Volume</p>
+                  <p className="font-bold">
                     {(
                       (stockData[stockData.length - 1]?.volume || 0) / 1000
                     ).toFixed(1)}
@@ -335,32 +261,14 @@ function Stock() {
                   </p>
                 </div>
               </div>
-            </motion.div>
-
-            {/* Positions Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <Positions />
-            </motion.div>
+            </div>
           </div>
 
-          {/* Right Column - Trading Panel */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-            className="space-y-6"
-          >
-            <TradingPanel
-              currentPrice={currentPrice}
-              symbol={stockNameData.shortName}
-            />
-          </motion.div>
+          <div>
+            <TradingPanel currentPrice={currentPrice} symbol="AAPL" />
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
