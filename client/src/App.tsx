@@ -12,7 +12,7 @@ import Signup from "./pages/Signup";
 import { TradeProvider } from "./context/context";
 import Profile from "./pages/Profile";
 import Footer from "./components/Footer"
-
+import CompanyProfile from "./pages/CompanyProfile";
 function App() {
   return (
     <TradeProvider>
@@ -28,9 +28,11 @@ function App() {
           <Route path="/news" element={<News />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/stock/:stockName" element={<Stock />} />
+          <Route path="/company/:companyName" element={<CompanyProfile />} />
         </Routes>
         <Footer />
       </Router>
+
     </TradeProvider>
   );
 }

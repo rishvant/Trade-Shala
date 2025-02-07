@@ -94,7 +94,7 @@ const CurrentPositions: React.FC<CurrentPositionsProps> = ({
               {/* Close Position Button */}
               <button
                 onClick={() => handleClosePosition(position.id)}
-                className="opacity-0 group-hover:opacity-100 absolute top-2 right-2 p-1 rounded-full hover:bg-red-500/20 transition-all"
+                className="opacity-100 absolute top-2 right-2 p-1 rounded-full hover:bg-red-500/20 transition-all"
                 title="Close Position"
               >
                 <X className="h-4 w-4 text-red-400" />

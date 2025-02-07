@@ -163,7 +163,8 @@ function Stock() {
     stockData.length > 0 ? stockData[stockData.length - 1].price : 0;
   const previousPrice =
     stockData.length > 1 ? stockData[stockData.length - 2].price : currentPrice;
-  const priceChange = currentPrice - previousPrice;
+
+  const priceChange = currentPrice - stockData[0]?.price.toFixed(2); ///yaha thik karna hai
   const priceChangePercent = previousPrice
     ? (priceChange / previousPrice) * 100
     : 0;
@@ -226,11 +227,15 @@ function Stock() {
   };
 
   // Update P&L when price changes
+  // yaha buy or sell logic likhna hai
   useEffect(() => {
     if (currentPrice > 0) {
       setPositions((prevPositions) =>
         prevPositions.map((position) => {
-          const pnl = (currentPrice - position.avgPrice) * position.quantity;
+          const pnl =
+            position.tradeType === "BUY"
+              ? (currentPrice - position.avgPrice) * position.quantity
+              : (position.avgPrice - currentPrice) * position.quantity;
           const pnlPercentage =
             (pnl / (position.avgPrice * position.quantity)) * 100;
 
@@ -334,6 +339,7 @@ function Stock() {
                     <p className="text-gray-400">Open</p>
                     <p className="font-bold text-white">
                       ₹{stockData[0]?.price.toFixed(2) || "0.00"}
+                      {/* yha se uthana hai mereko */}
                     </p>
                   </div>
                   <div>
@@ -382,7 +388,8 @@ function Stock() {
                     </span>
                   </span>
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-4"> 
+                  {/* yaha se start hai current positions */}
                   {positions.map((position) => (
                     <div
                       key={position.id}
