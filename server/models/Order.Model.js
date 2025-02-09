@@ -47,6 +47,10 @@ const orderSchema = new mongoose.Schema({
         type: mongoose.Types.ObjectId,
         required: true,
         ref: "User"
+    },
+    stock_id: {
+        type: mongoose.Types.ObjectId,
+        ref: "Stock"
     }
 },
     {
