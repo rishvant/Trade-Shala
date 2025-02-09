@@ -269,16 +269,20 @@ function Stock() {
 
       if (selectedPosition.pnl >= 0) {
         toast.success(
-          `Position closed with profit of ₹${Math.abs(selectedPosition.pnl).toFixed(2)}`,
+          `Position closed with profit of ₹${Math.abs(
+            selectedPosition.pnl
+          ).toFixed(2)}`,
           {
-            style: { background: '#064e3b', color: 'white' }
+            style: { background: "#064e3b", color: "white" },
           }
         );
       } else {
         toast.error(
-          `Position closed with loss of ₹${Math.abs(selectedPosition.pnl).toFixed(2)}`,
+          `Position closed with loss of ₹${Math.abs(
+            selectedPosition.pnl
+          ).toFixed(2)}`,
           {
-            style: { background: '#7f1d1d', color: 'white' }
+            style: { background: "#7f1d1d", color: "white" },
           }
         );
       }
