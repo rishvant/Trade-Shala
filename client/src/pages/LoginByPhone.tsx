@@ -53,7 +53,7 @@ function LoginByPhone() {
       if (response.status === 200) {
         localStorage.setItem("token", response.data.token);
         toast.success("Login successful!");
-        // navigate("/dashboard");
+        navigate("/");
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Login failed.");
@@ -71,7 +71,6 @@ function LoginByPhone() {
       console.error("Google Sign-In Error:", error);
     }
   };
-
 
   useEffect(() => {
     let interval: NodeJS.Timeout;

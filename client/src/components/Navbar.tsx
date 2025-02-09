@@ -42,6 +42,9 @@ const Navbar = () => {
 
   const handleLogout = () => {
     setIsLogin(false);
+    localStorage.removeItem("token");
+    localStorage.removeItem("userData");
+    navigate("/login");
   };
 
   const toggleProfileMenu = () => {
@@ -300,7 +303,6 @@ const Navbar = () => {
                   ? "bg-[#d32f2f] text-white hover:bg-[#c62828]" // Logout button style (red)
                   : "bg-[#2962ff] text-white hover:bg-[#1c54d4]" // Login button style (blue)
               }`}
-              // onClick={isLogin ? handleLogout : undefined}
               to="/"
               onClick={handleLogout}
             >

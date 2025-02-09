@@ -29,7 +29,7 @@ function LoginByEmail() {
         localStorage.setItem("token", response.data.token); // Store token in local storage
         console.log(response.data.message); // Handle successful login
         toast.success(response.data.message || "Login successful!"); // Show success message
-        // navigate("/dashboard"); // Redirect after successful login
+        navigate("/"); // Redirect after successful login
       }
     } catch (error: any) {
       console.error(

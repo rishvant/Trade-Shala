@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Clock, ArrowUpDown, TrendingUp, TrendingDown } from "lucide-react";
+import { Clock, ArrowUpDown, TrendingUp, TrendingDown, X } from "lucide-react";
 import StockChart from "../components/StockChart";
 import TradingPanel from "../components/TradingPanel";
 import StockSkeleton from "../components/StockSkeleton";
@@ -8,6 +8,8 @@ import { useParams } from "react-router-dom";
 import { StockName } from "../types/types";
 import { io } from "socket.io-client";
 import dayjs from "dayjs";
+import Modal from "react-modal";
+import { toast } from "sonner";
 
 const transformCandleData = (data: any) => {
   if (!data?.candles) return [];
@@ -45,6 +47,10 @@ function Stock() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [positions, setPositions] = useState<Position[]>([]);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [selectedPosition, setSelectedPosition] = useState<Position | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -250,6 +256,38 @@ function Stock() {
     }
   }, [currentPrice]);
 
+  const handleClosePosition = (position: Position) => {
+    setSelectedPosition(position);
+    setModalIsOpen(true);
+  };
+
+  const confirmClosePosition = () => {
+    if (selectedPosition) {
+      setPositions((prevPositions) =>
+        prevPositions.filter((position) => position.id !== selectedPosition.id)
+      );
+
+      if (selectedPosition.pnl >= 0) {
+        toast.success(
+          `Position closed with profit of ₹${Math.abs(selectedPosition.pnl).toFixed(2)}`,
+          {
+            style: { background: '#064e3b', color: 'white' }
+          }
+        );
+      } else {
+        toast.error(
+          `Position closed with loss of ₹${Math.abs(selectedPosition.pnl).toFixed(2)}`,
+          {
+            style: { background: '#7f1d1d', color: 'white' }
+          }
+        );
+      }
+
+      setSelectedPosition(null);
+      setModalIsOpen(false);
+    }
+  };
+
   if (isLoading) {
     return <StockSkeleton />;
   }
@@ -388,12 +426,12 @@ function Stock() {
                     </span>
                   </span>
                 </div>
-                <div className="space-y-4"> 
+                <div className="space-y-4">
                   {/* yaha se start hai current positions */}
                   {positions.map((position) => (
                     <div
                       key={position.id}
-                      className="bg-[#262B3D] rounded-lg p-4 hover:bg-[#2A2F44] transition-colors"
+                      className="bg-[#262B3D] rounded-lg p-4 hover:bg-[#2A2F44] transition-colors relative"
                     >
                       <div className="flex justify-between items-start mb-2">
                         <div>
@@ -448,6 +486,14 @@ function Stock() {
                           </p>
                         </div>
                       </div>
+                      {/* Close Position Button */}
+                      <button
+                        onClick={() => handleClosePosition(position)}
+                        className="absolute top-2 right-2 p-1 rounded-full hover:bg-red-500/20 transition-all"
+                        title="Close Position"
+                      >
+                        <X className="h-4 w-4 text-red-400" />
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -464,6 +510,32 @@ function Stock() {
           </div>
         </div>
       </main>
+
+      {/* Confirmation Modal */}
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={() => setModalIsOpen(false)}
+        contentLabel="Confirm Close Position"
+        className="bg-[#1E222D] text-white rounded-lg shadow-lg p-6 max-w-md mx-auto mt-20"
+        overlayClassName="fixed inset-0 bg-[#131722] bg-opacity-80 flex items-center justify-center"
+      >
+        <h2 className="text-xl font-bold mb-4">Confirm Close Position</h2>
+        <p className="mb-4">Are you sure you want to close this position?</p>
+        <div className="flex justify-end space-x-4">
+          <button
+            onClick={() => setModalIsOpen(false)}
+            className="px-4 py-2 bg-[#262B3D] text-white rounded-md hover:bg-[#2A2F44]"
+          >
+            No
+          </button>
+          <button
+            onClick={confirmClosePosition}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+          >
+            Yes
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }

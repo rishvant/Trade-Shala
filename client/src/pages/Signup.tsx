@@ -65,7 +65,7 @@ function Signup() {
       console.log(response);
       if (response.status === 201) {
         toast.success("Signup successful!");
-        navigate("/login/phone");
+        navigate("/");
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Login failed.");
