@@ -1,251 +1,138 @@
-import React, { useState, useRef } from "react";
-import { Search, Loader2 } from "lucide-react";
-import image from "../assets/ttt.jpg";
-import { MarketTickerProps } from "../types/types";
+import React from "react";
+import { TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
-import { searchStockData } from "../services/stockService";
-import { useNavigate } from "react-router-dom";
 import CurrentPositions from "./CurrentPositions";
 
-// Define the props interface for MarketTicker
-const MarketTicker: React.FC<MarketTickerProps> = ({
-  icon,
-  symbol,
-  value = "0",
-  change = 0,
-}) => (
-  <div className="flex items-center bg-[#4c4f555d] rounded-lg px-4 py-2 space-x-2 hover:bg-[#0c0e117a] hover:cursor-pointer">
-    {icon}
-    <div className="flex items-center space-x-2">
-      <span className="text-white font-medium">{symbol}</span>
-      <span className={`${change >= 0 ? "text-green-500" : "text-red-500"}`}>
-        {change >= 0 ? "+" : ""}
-        {change}%
-      </span>
-    </div>
-  </div>
-);
-
-// const GlitterEffect = () => {
-//   return (
-//     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-//       {[...Array(50)].map((_, i) => (
-//         <motion.div
-//           key={i}
-//           initial={{
-//             opacity: 0,
-//             scale: 0,
-//             x: Math.random() * window.innerWidth,
-//             y: Math.random() * window.innerHeight,
-//           }}
-//           animate={{
-//             opacity: [0, 0.8, 0],
-//             scale: [0, Math.random() * 0.5 + 0.5, 0],
-//             x: [
-//               Math.random() * window.innerWidth,
-//               Math.random() * window.innerWidth,
-//               Math.random() * window.innerWidth,
-//             ],
-//             y: [
-//               Math.random() * window.innerHeight,
-//               Math.random() * window.innerHeight,
-//               Math.random() * window.innerHeight,
-//             ],
-//           }}
-//           transition={{
-//             duration: Math.random() * 3 + 2,
-//             repeat: Infinity,
-//             repeatDelay: Math.random() * 1,
-//             ease: "easeInOut",
-//           }}
-//           className="absolute w-1 h-1 bg-white rounded-full"
-//           style={{
-//             filter: `blur(${Math.random() * 2}px)`,
-//             boxShadow: `
-//               0 0 ${Math.random() * 4 + 2}px #fff,
-//               0 0 ${Math.random() * 8 + 4}px #fff,
-//               0 0 ${Math.random() * 12 + 8}px rgba(255,255,255,0.5)
-//             `,
-//             backgroundColor: `hsl(${Math.random() * 60 + 180}, 100%, 90%)`,
-//           }}
-//         />
-//       ))}
-//     </div>
-//   );
-// };
-
 const HeroSection = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const searchTimeoutRef = useRef<NodeJS.Timeout>();
-  const navigate = useNavigate();
-
-  const handleSearch = async (value: string) => {
-    setSearchTerm(value);
-
-    // Clear previous timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    if (value.length < 2) {
-      setSearchResults([]);
-      return;
-    }
-
-    setIsLoading(true);
-
-    // Debounce search with shorter timeout (200ms)
-    searchTimeoutRef.current = setTimeout(async () => {
-      try {
-        const response = await searchStockData(value);
-        setSearchResults(
-          Object.entries(response.data)
-            .map(([symbol, name]) => ({
-              symbol,
-              name,
-            }))
-            .slice(0, 8) // Limit to 8 results for better performance
-        );
-      } catch (error) {
-        console.error("Search error:", error);
-        setSearchResults([]);
-      } finally {
-        setIsLoading(false);
-      }
-    }, 200); // Reduced from default 300ms to 200ms
-  };
-
-  const handleStockSelect = (symbol: string) => {
-    setSearchTerm("");
-    setSearchResults([]);
-    navigate(`/stock/${symbol}`);
-  };
-
   return (
-    <div>
-      <div className="sm:px-8 relative min-h-screen bg-gradient-to-br from-[#131722] to-[#1e222d] overflow-hidden">
-        {/* <img
-          src={image}
-          alt="Background"
-          className="absolute inset-0 w-full h-full object-cover"
-        /> */}
-        <div className="w-1/2 absolute inset-0">
-          <CurrentPositions
-            positions={[]}
-            onClosePosition={() => Promise.resolve()}
-          />
-        </div>
+    <div className="relative min-h-screen bg-[#0a0b0d] overflow-hidden">
+      {/* Gradient Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-[#131722] to-purple-900/20" />
 
-        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-purple-500/20" />
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0">
+        <motion.div
+          animate={{
+            background: [
+              "radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.1) 0%, transparent 50%)",
+              "radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.1) 0%, transparent 50%)",
+            ],
+          }}
+          transition={{ duration: 5, repeat: Infinity, repeatType: "reverse" }}
+          className="absolute inset-0"
+        />
+      </div>
 
-        <div className="relative container mx-auto px-4 pt-20">
-          <div className="max-w-4xl">
-            <h1 className="text-4xl sm:text-6xl font-bold text-white mb-4 leading-tight">
-              Look first /<br />
-              Then leap.
-            </h1>
+      <div className="relative container mx-auto px-4 pt-20">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Left Side - Main Content */}
+          <div className="w-full lg:w-1/2 xl:w-5/12">
+            {/* Welcome Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <h1 className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
+                Welcome back, {/* Add user's name */}
+              </h1>
+              <p className="text-lg text-gray-300 mb-8">
+                Here's your portfolio overview for today
+              </p>
+            </motion.div>
 
-            <p className="text-lg sm:text-xl text-gray-300 mb-8">
-              The best trades require research, then commitment.
-            </p>
+            {/* Portfolio Summary */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8"
+            >
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className="p-6 rounded-xl bg-[#1a1c25]/50 backdrop-blur-sm border border-gray-700/30 transition-all duration-300 hover:border-blue-500/50"
+              >
+                <h3 className="text-gray-400 mb-2">Total Portfolio Value</h3>
+                <p className="text-3xl font-bold text-white">$124,500.00</p>
+                <span className="text-green-500 text-sm flex items-center mt-2">
+                  +2.5% <TrendingUp className="w-4 h-4 ml-1" />
+                </span>
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className="p-6 rounded-xl bg-[#1a1c25]/50 backdrop-blur-sm border border-gray-700/30 transition-all duration-300 hover:border-green-500/50"
+              >
+                <h3 className="text-gray-400 mb-2">Today's P&L</h3>
+                <p className="text-3xl font-bold text-green-500">+$3,240.00</p>
+                <span className="text-gray-400 text-sm mt-2 block">
+                  Updated 5 min ago
+                </span>
+              </motion.div>
+            </motion.div>
 
-            <div className="relative max-w-2xl mb-12">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  placeholder="Search for stocks..."
-                  className="w-full px-12 py-4 bg-white rounded-full text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-                />
-                {isLoading && (
-                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                    <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
-                  </div>
-                )}
-              </div>
-
-              {/* Search Results Dropdown */}
-              {searchTerm && (
+            {/* Additional Portfolio Stats */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="grid grid-cols-1 sm:grid-cols-3 gap-6"
+            >
+              {[
+                { title: "Win Rate", value: "68%", color: "blue" },
+                { title: "Open Positions", value: "12", color: "purple" },
+                { title: "Available Margin", value: "$25,430", color: "pink" },
+              ].map((stat, index) => (
                 <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="absolute w-full mt-2 bg-white rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto"
+                  key={stat.title}
+                  whileHover={{ scale: 1.02 }}
+                  className={`p-6 rounded-xl bg-[#1a1c25]/50 backdrop-blur-sm border border-gray-700/30 
+                    transition-all duration-300 hover:border-${stat.color}-500/50`}
                 >
-                  {isLoading ? (
-                    <div className="p-4 text-center text-gray-600">
-                      <div className="flex items-center justify-center gap-2">
-                        <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
-                        <span>Searching...</span>
-                      </div>
-                    </div>
-                  ) : searchResults.length > 0 ? (
-                    searchResults.map(({ symbol, name }) => (
-                      <motion.button
-                        key={symbol}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        onClick={() => handleStockSelect(symbol)}
-                        className="w-full px-4 py-3 text-left hover:bg-gray-100 flex items-center justify-between group transition-colors duration-150"
-                      >
-                        <div>
-                          <div className="text-black font-medium">{symbol}</div>
-                          <div className="text-sm text-gray-600">{name}</div>
-                        </div>
-                        <span className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-                          View →
-                        </span>
-                      </motion.button>
-                    ))
-                  ) : (
-                    <div className="p-4 text-center text-gray-600">
-                      No stocks found
-                    </div>
-                  )}
+                  <h3 className="text-gray-400 mb-2">{stat.title}</h3>
+                  <p className="text-2xl font-bold text-white">{stat.value}</p>
                 </motion.div>
-              )}
+              ))}
+            </motion.div>
+          </div>
+
+          {/* Right Side - Current Positions */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className="w-full lg:w-1/2 xl:w-7/12 lg:pl-8 lg:border-l lg:border-gray-800"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-white">
+                Current Positions
+              </h2>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1 }}
+                className="flex items-center gap-2"
+              >
+                <span className="text-sm text-gray-400">Auto-refresh</span>
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+              </motion.div>
             </div>
 
-            <div className="flex space-x-4 overflow-x-auto pb-4">
-              <MarketTicker
-                icon={
-                  <div className="w-6 h-6 rounded-full bg-[#F7931A] flex items-center justify-center">
-                    ₿
-                  </div>
-                }
-                symbol="BTCUSD"
-                value="44,123"
-                change={1.44}
-              />
-              <MarketTicker
-                icon={
-                  <div className="w-6 h-6 rounded-full bg-[#2962ff] flex items-center justify-center">
-                    50
-                  </div>
-                }
-                symbol="NIFTY"
-                value="21,000"
-                change={0.37}
-              />
-              <MarketTicker
-                icon={
-                  <div className="w-6 h-6 rounded-full bg-[#2962ff] flex items-center justify-center">
-                    B
-                  </div>
-                }
-                symbol="BANKNIFTY"
-                value="46,500"
-                change={0.3}
-              />
-            </div>
-          </div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-[#1a1c25]/50 backdrop-blur-sm rounded-xl border border-gray-700/30 p-6"
+            >
+              <div className="max-h-[calc(100vh-280px)] overflow-y-auto custom-scrollbar">
+                <CurrentPositions
+                  positions={[]}
+                  onClosePosition={() => Promise.resolve()}
+                />
+              </div>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
-      {/* <GlitterEffect /> */}
     </div>
   );
 };

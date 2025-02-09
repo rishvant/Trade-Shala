@@ -13,6 +13,7 @@ import { TradeProvider } from "./context/context";
 import Profile from "./pages/Profile";
 import Footer from "./components/Footer";
 import CompanyProfile from "./pages/CompanyProfile";
+import GeminiChatbot from "./Chatbot";
 function App() {
   return (
     <TradeProvider>
@@ -30,6 +31,7 @@ function App() {
           <Route path="/stock/:stockName" element={<Stock />} />
           <Route path="/company/:companyName" element={<CompanyProfile />} />
         </Routes>
+        <GeminiChatbot apiKey="AIzaSyBvX1pXSK0h3ZANvyzeyNsje9FHSHFXp2U" />
         <Footer />
       </Router>
     </TradeProvider>
