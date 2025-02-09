@@ -10,9 +10,11 @@ import { FaChartLine, FaNewspaper, FaWallet, FaLock } from "react-icons/fa";
 import { searchStockData } from "../services/stockService";
 import { useNavigate } from "react-router-dom";
 import TopGainers from "../components/TopGainers";
+import { useTrade } from "../context/context";
 const Home = () => {
   const [activeTab, setActiveTab] = useState("indices");
   const [searchTerm, setSearchTerm] = useState("");
+  const { isLogin } = useTrade();
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -230,7 +232,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-[#131722] text-white">
       {/* Hero Section */}
-      <motion.div>
+      {!isLogin && (<motion.div>
         <GlitterEffect />
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -262,6 +264,7 @@ const Home = () => {
           initial="hidden"
           animate="visible"
           className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 z-0"
+
         >
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
@@ -278,7 +281,7 @@ const Home = () => {
             ))}
           </div>
         </motion.div>
-      </motion.div>
+      </motion.div>)}
       {/* Stats Section */}
       {/* <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -307,11 +310,12 @@ const Home = () => {
       </motion.div> */}
 
       {/* CTA Section */}
-      <motion.div
+      {!isLogin && (<motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.8 }}
         className="text-center py-16 px-4"
+
       >
         <motion.button
           whileHover={{ scale: 1.05 }}
@@ -320,10 +324,10 @@ const Home = () => {
         >
           Start Trading Now
         </motion.button>
-      </motion.div>
+      </motion.div>)}
 
       <div className="bg-gradient-to-br from-gray-900 to-black min-h-screen">
-        <HeroSection />
+        {isLogin && (<HeroSection />)}
         {/* ye ab aaya mere paas indices vaa section */}
         <div className="container mx-auto px-4 py-8">
           <div className="flex justify-center mb-8">

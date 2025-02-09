@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { searchStockData } from "../services/stockService";
 import { useNavigate } from "react-router-dom";
 import CurrentPositions from "./CurrentPositions";
+
 // Define the props interface for MarketTicker
 const MarketTicker: React.FC<MarketTickerProps> = ({
   icon,
@@ -130,9 +131,12 @@ const HeroSection = () => {
           alt="Background"
           className="absolute inset-0 w-full h-full object-cover"
         /> */}
-        {/* <div className="w-1/2 absolute inset-0">
-          <CurrentPositions />
-        </div> */}
+        <div className="w-1/2 absolute inset-0">
+          <CurrentPositions
+            positions={[]}
+            onClosePosition={() => Promise.resolve()}
+          />
+        </div>
 
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-purple-500/20" />
 

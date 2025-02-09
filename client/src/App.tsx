@@ -11,7 +11,7 @@ import LoginByEmail from "./pages/LoginByEmail";
 import Signup from "./pages/Signup";
 import { TradeProvider } from "./context/context";
 import Profile from "./pages/Profile";
-import Footer from "./components/Footer"
+import Footer from "./components/Footer";
 import CompanyProfile from "./pages/CompanyProfile";
 function App() {
   return (
@@ -32,7 +32,6 @@ function App() {
         </Routes>
         <Footer />
       </Router>
-
     </TradeProvider>
   );
 }
