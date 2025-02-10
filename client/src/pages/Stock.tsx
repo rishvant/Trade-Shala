@@ -4,7 +4,7 @@ import StockChart from "../components/StockChart";
 import TradingPanel from "../components/TradingPanel";
 import StockSkeleton from "../components/StockSkeleton";
 import { fetchStockData, searchStockData } from "../services/stockService";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { StockName } from "../types/types";
 import { io } from "socket.io-client";
 import dayjs from "dayjs";
@@ -38,6 +38,7 @@ interface Position {
 
 function Stock() {
   const { stockName } = useParams<{ stockName: any }>();
+  const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState<string>("1D");
   const [stockData, setStockData] = useState<any[]>([]);
   const [marketStatus, setMarketStatus] = useState<string>("closed");
@@ -332,18 +333,27 @@ function Stock() {
                   </h2>
                   <p className="text-gray-400">{stockNameData.fullName}</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-3xl font-bold text-white">
-                    ₹{currentPrice.toFixed(2)}
-                  </p>
-                  <p
-                    className={`${
-                      priceChange >= 0 ? "text-green-400" : "text-red-400"
-                    }`}
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => navigate(`/sentiment/${stockName}`)}
+                    className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-md flex items-center gap-2 text-white"
                   >
-                    {priceChange >= 0 ? "+" : ""}
-                    {priceChange.toFixed(2)} ({priceChangePercent.toFixed(2)}%)
-                  </p>
+                    Sentiment
+                  </button>
+                  <div className="text-right">
+                    <p className="text-3xl font-bold text-white">
+                      ₹{currentPrice.toFixed(2)}
+                    </p>
+                    <p
+                      className={`${
+                        priceChange >= 0 ? "text-green-400" : "text-red-400"
+                      }`}
+                    >
+                      {priceChange >= 0 ? "+" : ""}
+                      {priceChange.toFixed(2)} ({priceChangePercent.toFixed(2)}
+                      %)
+                    </p>
+                  </div>
                 </div>
               </div>
 
