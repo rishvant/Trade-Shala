@@ -10,7 +10,6 @@ import orderRoutes from './routes/orderRoutes.js';
 import connectSocket from "./lib/socketio.js";
 
 const PORT = process.env.PORT || 3000;
-
 const app = express();
 connectDB();
 app.use(express.json());
