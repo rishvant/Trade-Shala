@@ -14,6 +14,7 @@ import Profile from "./pages/Profile";
 import Footer from "./components/Footer";
 import CompanyProfile from "./pages/CompanyProfile";
 import GeminiChatbot from "./Chatbot";
+import TechnicalAnalysisPage from "./pages/TechnicalAnalysisPage";
 // import TradingWidgets from "./components/TradingWidgets";
 function App() {
   return (
@@ -30,7 +31,7 @@ function App() {
           <Route path="/news" element={<News />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/stock/:stockName" element={<Stock />} />
-
+          <Route path="/technical-analysis/:stockName" element={<TechnicalAnalysisPage />} />
           <Route path="/company/:companyName" element={<CompanyProfile />} />
         </Routes>
         <GeminiChatbot apiKey="AIzaSyBvX1pXSK0h3ZANvyzeyNsje9FHSHFXp2U" />
