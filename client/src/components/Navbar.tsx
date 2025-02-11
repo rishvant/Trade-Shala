@@ -145,7 +145,7 @@ const Navbar = () => {
             to="/contact"
             className="text-gray-300 hover:text-white transition-colors duration-300"
           >
-            ContactUs
+            Contact Us
           </Link>
         </div>
 

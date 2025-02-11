@@ -99,4 +99,38 @@ const verifyAndLogin = async (req, res) => {
     res.status(200).json({ message: "OTP verified, login successful", token });
 };
 
-export { generateOTP, signup, login, verifyAndLogin };
+// get user details 
+const getUser = async (req, res) => {
+    try {
+        const { phone } = req.body;  // Get phone number from the request body
+        if (!phone) {
+            return res.status(400).json({
+                success: false,
+                message: 'Phone number is required to access user details'
+            });
+        }
+
+        const userDetail = await User.findOne({ phoneNumber: phone }).select('-password');  // Find user by phone number
+
+        if (!userDetail) {
+            return res.status(404).json({
+                success: false,
+                message: 'No such user exists'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: userDetail,
+            message: 'User details fetched'
+        });
+    } catch (err) {
+        console.error(err);  // Log the error for debugging
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+};
+
+export { generateOTP, signup, login, verifyAndLogin , getUser};
