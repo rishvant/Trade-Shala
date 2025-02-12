@@ -1,10 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
-import {
-  TechnicalAnalysis,
-  FundamentalData,
-  CompanyProfile,
-} from "react-ts-tradingview-widgets";
-
+import FundamentalData from "../TradingiewApi/src/components/FundamentalData";
+import TechnicalAnalysis from "../TradingiewApi/src/components/TechnicalAnalysis";
+import CompanyProfile from "../TradingiewApi/src/components/CompanyProfile";
 const TechnicalAnalysisPage = () => {
   const { stockName } = useParams<{ stockName: string }>();
   const navigate = useNavigate();
@@ -23,6 +20,7 @@ const TechnicalAnalysisPage = () => {
       <main className="p-8 space-y-8">
         <div className="bg-[#1E222D] p-6 rounded-lg shadow-lg">
           <h2 className="text-xl font-bold mb-4">Technical Analysis</h2>
+
           <TechnicalAnalysis
             symbol={stockName}
             colorTheme="dark"
