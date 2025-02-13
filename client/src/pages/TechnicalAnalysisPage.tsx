@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import FundamentalData from "../TradingiewApi/src/components/FundamentalData";
 import TechnicalAnalysis from "../TradingiewApi/src/components/TechnicalAnalysis";
 import CompanyProfile from "../TradingiewApi/src/components/CompanyProfile";
+import TradingViewWidgets from "./kuchkch";
 const TechnicalAnalysisPage = () => {
   const { stockName } = useParams<{ stockName: string }>();
   const navigate = useNavigate();
@@ -46,6 +47,10 @@ const TechnicalAnalysisPage = () => {
             width="100%"
             height={400}
           />
+        </div>
+        <div className="bg-[#1E222D] p-6 rounded-lg shadow-lg">
+          <h2 className="text-xl font-bold mb-4">TradingView Widgets</h2>
+          <TradingViewWidgets />
         </div>
       </main>
     </div>

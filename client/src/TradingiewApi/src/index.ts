@@ -1,6 +1,6 @@
 
 export { CompanyProfile } from "./components";
-
+export { StockMarket } from "./components";
 export { FundamentalData } from "./components";
 
 export { SymbolOverview } from "./components";

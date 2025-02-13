@@ -1,26 +1,31 @@
 import axios from "axios";
 import { API_BASE_URL } from "./API";
 
-export const fetchStockData = async (symbol: string) => {
+export const fetchStockData = async (path: string) => {
   try {
-    const response = await axios.get(
-      `${API_BASE_URL}/stocks/intraday/${symbol}`
-    );
+    console.log("Fetching from:", `${API_BASE_URL}/stocks/${path}`); // Debug log
+    const response = await axios.get(`${API_BASE_URL}/stocks/${path}`);
     return response;
-  } catch (error) {
-    console.error("Error fetching stock data:", error);
+  } catch (error: any) {
+    console.error("Error fetching stock data:", {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
     throw error;
   }
 };
 
 export const searchStockData = async (symbol: string) => {
   try {
-    const response = await axios.get(
-      `${API_BASE_URL}/stocks/stockdata/search?symbol=${symbol}`
-    );
+    const response = await axios.get(`${API_BASE_URL}/stocks/search?symbol=${symbol}`);
     return response;
-  } catch (error) {
-    console.error("Error fetching stock data:", error);
+  } catch (error: any) {
+    console.error("Error searching stock data:", {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
     throw error;
   }
 };
