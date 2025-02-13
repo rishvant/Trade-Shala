@@ -8,6 +8,7 @@ import stocksRoutes from "./routes/stocksRoutes.js";
 import authRoutes from './routes/authRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import connectSocket from "./lib/socketio.js";
+import transactionRoutes from './routes/transactionRoutes.js'
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -18,6 +19,7 @@ app.use(cors());
 app.use("/api/stocks", stocksRoutes);
 app.use("/api", orderRoutes);
 app.use('/api/v1', authRoutes);
+app.use("/api/transactions", transactionRoutes);
 
 app.get('/', (req, res) => {
     res.send(`<h1>this is server</h1>`);
