@@ -15,7 +15,6 @@ const app = express();
 connectDB();
 app.use(express.json());
 app.use(cors());
-
 app.use("/api/stocks", stocksRoutes);
 app.use("/api", orderRoutes);
 app.use('/api/v1', authRoutes);

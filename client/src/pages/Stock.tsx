@@ -10,7 +10,7 @@ import { io } from "socket.io-client";
 import dayjs from "dayjs";
 import Modal from "react-modal";
 import { toast } from "sonner";
-
+import { TechnicalAnalysis } from "react-ts-tradingview-widgets";
 const transformCandleData = (data: any) => {
   if (!data?.candles) return [];
 
@@ -52,6 +52,7 @@ function Stock() {
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(
     null
   );
+  const [isTechnicalAnalysisOpen, setIsTechnicalAnalysisOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -293,6 +294,10 @@ function Stock() {
     }
   };
 
+  const openTechnicalAnalysis = () => {
+    setIsTechnicalAnalysisOpen(true);
+  };
+
   if (isLoading) {
     return <StockSkeleton />;
   }
@@ -335,7 +340,7 @@ function Stock() {
                 </div>
                 <div className="flex items-center gap-4">
                   <button
-                    onClick={() => navigate(`/sentiment/${stockName}`)}
+                    onClick={() => navigate(`/technical-analysis/${stockName}`)}
                     className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-md flex items-center gap-2 text-white"
                   >
                     Sentiment
@@ -547,6 +552,31 @@ function Stock() {
             className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
           >
             Yes
+          </button>
+        </div>
+      </Modal>
+
+      {/* Technical Analysis Modal */}
+      <Modal
+        isOpen={isTechnicalAnalysisOpen}
+        onRequestClose={() => setIsTechnicalAnalysisOpen(false)}
+        contentLabel="Technical Analysis"
+        className="bg-[#1E222D] text-white rounded-lg shadow-lg p-6 max-w-3xl mx-auto mt-20 z-auto"
+        overlayClassName="fixed inset-0 bg-[#131722] bg-opacity-80 flex items-center justify-center"
+      >
+        <h2 className="text-xl font-bold mb-4">Technical Analysis</h2>
+        <TechnicalAnalysis
+          symbol={stockName}
+          colorTheme="dark"
+          width="100%"
+          height={400}
+        />
+        <div className="flex justify-end mt-4">
+          <button
+            onClick={() => setIsTechnicalAnalysisOpen(false)}
+            className="px-4 py-2 bg-[#262B3D] text-white rounded-md hover:bg-[#2A2F44]"
+          >
+            Close
           </button>
         </div>
       </Modal>
