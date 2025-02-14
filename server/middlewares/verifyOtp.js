@@ -6,7 +6,7 @@ const verifyOTP = async (req, res, next) => {
     if (!phoneNumber || !otp) {
         return res.status(400).json({ message: "Phone number and OTP are required" });
     }
-
+    
     try {
         const otpRecord = await OTP.findOne({ phoneNumber, otp });
 

@@ -39,43 +39,61 @@ const TopGainers = () => {
   };
 
   const fetchPriceData = async (stocks: any[]) => {
-    const updatedData = await Promise.all(
-      stocks.map(async (stock) => {
-        try {
-          const response = await fetchStockData(stock.symbol);
-          const candles = response.data.data.candles;
+    try {
+      const updatedData = await Promise.all(
+        stocks.map(async (stock) => {
+          try {
+            // Use intraday endpoint to fetch stock data
+            const response = await fetchStockData(`intraday/${stock.symbol}`);
+            
+            if (!response?.data?.data?.candles) {
+              console.error(`No data available for ${stock.symbol}:`, response.data);
+              return {
+                ...stock,
+                currentPrice: 0,
+                change: 0,
+                changePercent: 0,
+                error: true,
+              };
+            }
 
-          if (candles && candles.length > 0) {
-            const marketOpenPrice = candles[0][1]; // Open price
-            const currentPrice = candles[candles.length - 1][4]; // Current price
-            const change = currentPrice - marketOpenPrice;
-            const changePercent = (change / marketOpenPrice) * 100;
+            const candles = response.data.data.candles;
+            if (candles && candles.length > 0) {
+              const marketOpenPrice = candles[0][1]; // Open price
+              const currentPrice = candles[candles.length - 1][4]; // Current price
+              const change = currentPrice - marketOpenPrice;
+              const changePercent = (change / marketOpenPrice) * 100;
 
+              return {
+                ...stock,
+                currentPrice,
+                change,
+                changePercent,
+                error: false,
+              };
+            }
+
+            throw new Error(`No candle data available for ${stock.symbol}`);
+          } catch (error) {
+            console.error(`Error processing ${stock.symbol}:`, error);
             return {
               ...stock,
-              currentPrice,
-              change,
-              changePercent,
-              error: false,
+              currentPrice: 0,
+              change: 0,
+              changePercent: 0,
+              error: true,
             };
           }
-          throw new Error("No data available");
-        } catch (error) {
-          console.error(`Error fetching ${stock.symbol}:`, error);
-          return {
-            ...stock,
-            currentPrice: 0,
-            change: 0,
-            changePercent: 0,
-            error: true,
-          };
-        }
-      })
-    );
+        })
+      );
 
-    return updatedData.sort(
-      (a, b) => Math.abs(b.changePercent) - Math.abs(a.changePercent)
-    );
+      return updatedData.sort(
+        (a, b) => Math.abs(b.changePercent) - Math.abs(a.changePercent)
+      );
+    } catch (error) {
+      console.error("Error in fetchPriceData:", error);
+      return [];
+    }
   };
 
   useEffect(() => {
