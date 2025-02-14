@@ -1,47 +1,53 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 import CurrentPositions from "./CurrentPositions";
 
 const HeroSection = () => {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:3000/api/order/user/679e816d833b883f64035b04"
+        );
+        setOrders(response.data.data);
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
+
   return (
     <div className="relative min-h-screen bg-[#0a0b0d] overflow-hidden">
       {/* Gradient Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-[#131722] to-purple-900/20" />
 
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0">
-        <motion.div
-          animate={{
-            background: [
-              "radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.1) 0%, transparent 50%)",
-              "radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.1) 0%, transparent 50%)",
-            ],
-          }}
-          transition={{ duration: 5, repeat: Infinity, repeatType: "reverse" }}
-          className="absolute inset-0"
-        />
-      </div>
-
       <div className="relative container mx-auto px-4 pt-20">
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Left Side - Main Content */}
+          {/* Left Side - Portfolio Summary */}
           <div className="w-full lg:w-1/2 xl:w-5/12">
-            {/* Welcome Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
               <h1 className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
-                Welcome back, {/* Add user's name */}
+                Welcome back,
               </h1>
               <p className="text-lg text-gray-300 mb-8">
                 Here's your portfolio overview for today
               </p>
             </motion.div>
 
-            {/* Portfolio Summary */}
+            {/* Portfolio Stats */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -68,30 +74,6 @@ const HeroSection = () => {
                   Updated 5 min ago
                 </span>
               </motion.div>
-            </motion.div>
-
-            {/* Additional Portfolio Stats */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="grid grid-cols-1 sm:grid-cols-3 gap-6"
-            >
-              {[
-                { title: "Win Rate", value: "68%", color: "blue" },
-                { title: "Open Positions", value: "12", color: "purple" },
-                { title: "Available Margin", value: "$25,430", color: "pink" },
-              ].map((stat, index) => (
-                <motion.div
-                  key={stat.title}
-                  whileHover={{ scale: 1.02 }}
-                  className={`p-6 rounded-xl bg-[#1a1c25]/50 backdrop-blur-sm border border-gray-700/30 
-                    transition-all duration-300 hover:border-${stat.color}-500/50`}
-                >
-                  <h3 className="text-gray-400 mb-2">{stat.title}</h3>
-                  <p className="text-2xl font-bold text-white">{stat.value}</p>
-                </motion.div>
-              ))}
             </motion.div>
           </div>
 
@@ -123,12 +105,21 @@ const HeroSection = () => {
               transition={{ delay: 0.4 }}
               className="bg-[#1a1c25]/50 backdrop-blur-sm rounded-xl border border-gray-700/30 p-6"
             >
-              <div className="max-h-[calc(100vh-280px)] overflow-y-auto custom-scrollbar">
-                <CurrentPositions
-                  positions={[]}
-                  onClosePosition={() => Promise.resolve()}
-                />
-              </div>
+              {loading ? (
+                <p className="text-gray-400">Loading positions...</p>
+              ) : (
+                <div className="max-h-[calc(100vh-280px)] overflow-y-auto custom-scrollbar">
+                  <CurrentPositions
+                    positions={orders}
+                    onClosePosition={(id) => {
+                      setOrders((prev) =>
+                        prev.filter((order: any) => order._id !== id)
+                      );
+                      return Promise.resolve();
+                    }}
+                  />
+                </div>
+              )}
             </motion.div>
           </motion.div>
         </div>
