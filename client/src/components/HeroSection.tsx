@@ -14,7 +14,8 @@ const HeroSection = () => {
       try {
         const user_id = localStorage.getItem("user_id");
         const response = await fetchPortfolios(user_id);
-        setOrders(response.data?.holdings);
+        console.log(response)
+        setOrders(response.data[0]?.holdings);
       } catch (error) {
         console.error("Error fetching orders:", error);
       } finally {
