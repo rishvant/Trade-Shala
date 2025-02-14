@@ -59,7 +59,7 @@ const HeroSection = () => {
                 className="p-6 rounded-xl bg-[#1a1c25]/50 backdrop-blur-sm border border-gray-700/30 transition-all duration-300 hover:border-blue-500/50"
               >
                 <h3 className="text-gray-400 mb-2">Total Portfolio Value</h3>
-                <p className="text-3xl font-bold text-white">$124,500.00</p>
+                <p className="text-3xl font-bold text-white">₹124,500.00</p>
                 <span className="text-green-500 text-sm flex items-center mt-2">
                   +2.5% <TrendingUp className="w-4 h-4 ml-1" />
                 </span>
@@ -69,7 +69,7 @@ const HeroSection = () => {
                 className="p-6 rounded-xl bg-[#1a1c25]/50 backdrop-blur-sm border border-gray-700/30 transition-all duration-300 hover:border-green-500/50"
               >
                 <h3 className="text-gray-400 mb-2">Today's P&L</h3>
-                <p className="text-3xl font-bold text-green-500">+$3,240.00</p>
+                <p className="text-3xl font-bold text-green-500">+₹3,240.00</p>
                 <span className="text-gray-400 text-sm mt-2 block">
                   Updated 5 min ago
                 </span>
