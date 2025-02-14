@@ -3,14 +3,19 @@ import { API_BASE_URL } from "./API";
 
 export const fetchStockData = async (path: string) => {
   try {
-    console.log("Fetching from:", `${API_BASE_URL}/stocks/${path}`); // Debug log
-    const response = await axios.get(`${API_BASE_URL}/stocks/${path}`);
+    const url = `${API_BASE_URL}/stocks/${path}`;
+    const response = await axios.get(url);
+    
+    if (!response.data) {
+      throw new Error('No data received from API');
+    }
+    
     return response;
   } catch (error: any) {
     console.error("Error fetching stock data:", {
       message: error.message,
+      url,
       response: error.response?.data,
-      status: error.response?.status,
     });
     throw error;
   }
