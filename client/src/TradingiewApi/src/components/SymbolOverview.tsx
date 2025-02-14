@@ -2,7 +2,6 @@ import React, { memo } from "react";
 import {
   ChartType,
   ColorTheme,
-  CopyrightStyles,
   DateFormat,
   Locales,
   ScaleMode,
@@ -83,7 +82,6 @@ export type SymbolOverviewProps = {
 
   children?: never;
 
-  copyrightStyles?: CopyrightStyles;
 };
 
 const defaultSymbols = [
@@ -139,7 +137,6 @@ const SymbolOverview: React.FC<SymbolOverviewProps> = ({
 
   autosize = false,
   container_id = `tradingview_${createId(5)}`,
-  copyrightStyles,
   ...props
 }) => {
   return (
@@ -192,10 +189,6 @@ const SymbolOverview: React.FC<SymbolOverviewProps> = ({
       scriptSRC="https://s3.tradingview.com/tv.js"
       containerId={container_id}
       type="MediumWidget"
-      copyrightProps={{
-        href: `https://www.tradingview.com/symbols/${symbols[0][1]}`,
-        spanText: `${symbols[0][1]}`,
-      }}
     />
   );
 };

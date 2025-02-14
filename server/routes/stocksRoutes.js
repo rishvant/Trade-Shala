@@ -7,6 +7,9 @@ router.get('/stockdata/search', stockSearch);
 
 router.get('/intraday/:symbol', stockData);
 
-router.get('/historical/:symbol/:day', HistoricalData);
+router.get(
+  "/historical-candle/:symbol/:interval/:toDate/:fromDate",
+  HistoricalData
+);
 
 export default router;

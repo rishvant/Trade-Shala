@@ -16,14 +16,60 @@ import Modal from "react-modal";
 import { toast } from "sonner";
 import { TechnicalAnalysis } from "react-ts-tradingview-widgets";
 
+// Add interface for historical data parameters
+interface HistoricalDataParams {
+  interval: string;
+  fromDate: string;
+  toDate: string;
+}
+
+// Add time range mapping
+const timeRangeConfig: { [key: string]: HistoricalDataParams } = {
+  "1D": {
+    interval: "1minute",
+    fromDate: formatDate(new Date(Date.now() - 24 * 60 * 60 * 1000)),
+    toDate: formatDate(new Date()),
+  },
+  "1W": {
+    interval: "30minute",
+    fromDate: formatDate(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)),
+    toDate: formatDate(new Date()),
+  },
+  "1M": {
+    interval: "day",
+    fromDate: formatDate(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)),
+    toDate: formatDate(new Date()),
+  },
+  "3M": {
+    interval: "day",
+    fromDate: formatDate(new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)),
+    toDate: formatDate(new Date()),
+  },
+  "1Y": {
+    interval: "week",
+    fromDate: formatDate(new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)),
+    toDate: formatDate(new Date()),
+  },
+};
+
+// Helper function to format date to YYYY-MM-DD
+function formatDate(date: Date): string {
+  return date.toISOString().split("T")[0];
+}
+
 const transformCandleData = (data: any) => {
   if (!data?.candles) return [];
 
   return data.candles
     .map((candle: any[]) => ({
       time: candle[0],
-      price: candle[4],
+      price: candle[4], // Using close price
       volume: candle[5],
+      // Add OHLC data for candlestick chart if needed
+      open: candle[1],
+      high: candle[2],
+      low: candle[3],
+      close: candle[4],
     }))
     .reverse();
 };
@@ -60,15 +106,19 @@ function Stock() {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!stockName) return;
+
       setIsLoading(true);
       try {
-        const response = await fetchStockData(stockName);
-        console.log(response);
+        // For initial load, fetch intraday data
+        const response = await fetchStockData(`intraday/${stockName}`);
+        console.log("Initial fetch response:", response); // Debug log
         const transformedData = transformCandleData(response.data.data);
         setStockData(transformedData);
         setMarketStatus(response.data.marketStatus);
       } catch (error) {
         console.error("Error fetching stock data:", error);
+        toast.error("Failed to fetch stock data");
       } finally {
         setIsLoading(false);
       }
@@ -181,10 +231,29 @@ function Stock() {
     ? (priceChange / previousPrice) * 100
     : 0;
 
-  const handleTimeRangeChange = (range: string) => {
+  const handleTimeRangeChange = async (range: string) => {
     setTimeRange(range);
-    // In a real app, fetch new data for the selected time range
-    // For now, we'll keep the same data
+    setIsLoading(true);
+    try {
+      let response;
+      if (range === "1D") {
+        response = await fetchStockData(`intraday/${stockName}`);
+      } else {
+        const { interval, fromDate, toDate } = timeRangeConfig[range];
+        const path = `historical-candle/${stockName}/${interval}/${toDate}/${fromDate}`;
+        console.log("Fetching path:", path); // Debug log
+        response = await fetchStockData(path);
+      }
+
+      console.log("Time range response:", response); // Debug log
+      const transformedData = transformCandleData(response.data.data);
+      setStockData(transformedData);
+    } catch (error) {
+      console.error("Error fetching stock data:", error);
+      toast.error("Failed to fetch data for selected time range");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Handler for new trades

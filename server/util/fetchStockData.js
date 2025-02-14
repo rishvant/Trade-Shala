@@ -1,52 +1,56 @@
-import axios from 'axios';
+import axios from "axios";
 // @ts-ignore
-import * as UpstoxClient from 'upstox-js-sdk';
-import { format } from 'date-fns';
-import { isSameDay } from 'date-fns';
+import * as UpstoxClient from "upstox-js-sdk";
+import { format } from "date-fns";
+import { isSameDay } from "date-fns";
 
 // import { redis } from '../lib/redis';
-import fetchInstrumentDetails from './fetchInstrumentDetails.js';
+import fetchInstrumentDetails from "./fetchInstrumentDetails.js";
 
 // *****************************************************************
 // Helper: Fetch UPSTOX Data | INTRADAY Data
 // *****************************************************************
 export const fetchUpstoxData = async (symbol) => {
-  const instrument = await fetchInstrumentDetails(symbol);
-  if (!instrument) {
-    throw new Error('No instrument found for the given symbol.');
-  }
+  try {
+    const instrument = await fetchInstrumentDetails(symbol);
+    if (!instrument) {
+      throw new Error("No instrument found for the given symbol.");
+    }
 
-  const interval = '1minute';
-  const instrumentKey = instrument.instrument_key;
+    const interval = "1minute";
+    const instrumentKey = instrument.instrument_key;
 
-  // const cacheStockData = await redis.get(instrument.instrument_key);
+    // const cacheStockData = await redis.get(instrument.instrument_key);
 
-  // if (cacheStockData) {
-  //   console.log('🚀 serving cacheStockData:');
-  //   return JSON.parse(cacheStockData);
-  // }
+    // if (cacheStockData) {
+    //   console.log('🚀 serving cacheStockData:');
+    //   return JSON.parse(cacheStockData);
+    // }
 
-  // console.log('🚀 serving real api:');
-  return new Promise((resolve, reject) => {
-    let apiInstance = new UpstoxClient.HistoryApi();
-    let apiVersion = '2.0';
-    apiInstance.getIntraDayCandleData(
-      instrumentKey,
-      interval,
-      apiVersion,
-      // @ts-ignore
-      (error, data, response) => {
-        if (error) {
-          console.log('🚀 fetchUpstoxData error:', error);
-          reject(error);
-        } else {
-          // redis.set(instrument.instrument_key, JSON.stringify(data));
-          // redis.expire(instrument.instrument_key, 1000);
-          resolve(data);
+    // console.log('🚀 serving real api:');
+    return new Promise((resolve, reject) => {
+      let apiInstance = new UpstoxClient.HistoryApi();
+      let apiVersion = "2.0";
+      apiInstance.getIntraDayCandleData(
+        instrumentKey,
+        interval,
+        apiVersion,
+        (error, data, response) => {
+          if (error) {
+            console.log("🚀 fetchUpstoxData error:", error?.message || error);
+            reject(new Error("Failed to fetch stock data"));
+          } else {
+            // redis.set(instrument.instrument_key, JSON.stringify(data));
+            // redis.expire(instrument.instrument_key, 1000);
+            resolve(data);
+          }
         }
-      }
-    );
-  });
+      );
+    });
+  } catch (error) {
+    console.error("Error in fetchUpstoxData:", error?.message || error);
+    throw error;
+  }
 };
 
 // *****************************************************************
@@ -56,34 +60,38 @@ export const getLastMarketData = async ({
   symbol,
   toDate,
   fromDate,
+  interval = "1minute",
 }) => {
-  const instrument = await fetchInstrumentDetails(symbol);
-  if (!instrument) {
-    throw new Error('No instrument found for the given symbol.');
-  }
-  const instrumentKey = instrument.instrument_key;
-  const apiInstance = new UpstoxClient.HistoryApi();
-  const apiVersion = '2.0';
-  const interval = '1minute';
+  try {
+    const instrument = await fetchInstrumentDetails(symbol);
+    if (!instrument) {
+      throw new Error("No instrument found for the given symbol.");
+    }
+    const instrumentKey = instrument.instrument_key;
+    const apiInstance = new UpstoxClient.HistoryApi();
+    const apiVersion = "2.0";
 
-  return new Promise((resolve, reject) => {
-    apiInstance.getHistoricalCandleData1(
-      instrumentKey,
-      interval,
-      toDate,
-      fromDate,
-      apiVersion,
-      // @ts-ignore
-      (error, data, response) => {
-        if (error) {
-          console.error(error);
-          reject(error);
-        } else {
-          resolve(data);
+    return new Promise((resolve, reject) => {
+      apiInstance.getHistoricalCandleData1(
+        instrumentKey,
+        interval,
+        toDate,
+        fromDate,
+        apiVersion,
+        (error, data, response) => {
+          if (error) {
+            console.error("Historical data error:", error?.message || error);
+            reject(new Error("Failed to fetch historical data"));
+          } else {
+            resolve(data);
+          }
         }
-      }
-    );
-  });
+      );
+    });
+  } catch (error) {
+    console.error("Error in getLastMarketData:", error?.message || error);
+    throw error;
+  }
 };
 
 // *****************************************************************
@@ -95,21 +103,21 @@ export const getMarketStatus = async () => {
     const res = await axios.get(url);
 
     const indiaMarketStatus = res.data.markets.filter(
-      (market) => market.region === 'India'
+      (market) => market.region === "India"
     );
 
     if (!indiaMarketStatus.length) {
-      return 'Market Not Found';
+      return "Market Not Found";
     }
 
     // Market status open / close
     let status = indiaMarketStatus[0].current_status;
 
     // Convert current UTC time to IST
-    const istTimeZone = 'Asia/Kolkata';
+    const istTimeZone = "Asia/Kolkata";
     const nowInIST = new Date(); // Use local time for now
 
-    const formattedTime = format(nowInIST, 'yyyy-MM-dd HH:mm:ss', {
+    const formattedTime = format(nowInIST, "yyyy-MM-dd HH:mm:ss", {
       timeZone: istTimeZone,
     });
 
@@ -127,7 +135,7 @@ export const getMarketStatus = async () => {
       isWeekend(currentTime) ||
       closedDates.some((closedDate) => isSameDay(currentTime, closedDate))
     ) {
-      return 'closed';
+      return "closed";
     }
 
     // Market Open Time
@@ -141,16 +149,16 @@ export const getMarketStatus = async () => {
     // If the initial status is 'closed' and the current time is within market hours,
     // set status to 'open'
     if (
-      status === 'closed' &&
+      status === "closed" &&
       currentTime >= marketOpenTime &&
       currentTime <= marketCloseTime
     ) {
-      status = 'open';
+      status = "open";
     }
 
     return status;
   } catch (error) {
-    console.log('🚀 getMarketStatus ~ error:', error);
+    console.log("🚀 getMarketStatus ~ error:", error);
     return;
   }
 };
@@ -171,11 +179,11 @@ export const formatDate = (date) => {
   const yyyy = date.getFullYear();
 
   if (dd < 10) {
-    dd = '0' + dd;
+    dd = "0" + dd;
   }
 
   if (mm < 10) {
-    mm = '0' + mm;
+    mm = "0" + mm;
   }
 
   return `${yyyy}-${mm}-${dd}`;
