@@ -86,6 +86,8 @@ interface Position {
   type: "INTRADAY" | "DELIVERY";
 }
 
+const socket = io("http://localhost:3000");
+
 function Stock() {
   const { stockName } = useParams<{ stockName: any }>();
   const navigate = useNavigate();
@@ -409,9 +411,23 @@ function Stock() {
     fetchPositions();
   }, [stockName]);
 
-  const handleClosePosition = (position: Position) => {
-    console.log(`Closing position for ${position.symbol}`);
-    setPositions(positions.filter((p) => p.id !== position.id));
+  const handleClosePosition = (position: any) => {
+    console.log(position);
+    const orderData = {
+      stock_symbol: stockName,
+      completion_price: currentPrice,
+      user_id: localStorage.getItem("user_id"),
+    };
+
+    socket.emit("completeOrder", orderData);
+
+    socket.on("completeOrder", (response) => {
+      alert(response.message);
+    });
+
+    socket.on("error", (error) => {
+      alert(error);
+    });
   };
 
   if (isLoading) {
