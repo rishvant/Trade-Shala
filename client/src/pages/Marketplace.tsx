@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { format } from "date-fns";
 import { createStrategy, fetchStrategy } from "@/services/stockService";
 import { toast } from "sonner";
-
+import { FiSearch, FiLoader } from "react-icons/fi";
+import { searchStockData } from "../services/stockService";
 interface Strategy {
   id: string;
   title: string;
@@ -18,6 +19,10 @@ interface Strategy {
   sl: number;
   price: number;
   createdAt: string;
+}
+
+interface SearchResult {
+  [key: string]: string;
 }
 
 const Marketplace: React.FC = () => {
@@ -36,6 +41,14 @@ const Marketplace: React.FC = () => {
     sl: 0,
     price: 0,
   });
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchResult>({});
+  const [showResults, setShowResults] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   const fetchStrategies = async () => {
     try {
@@ -62,7 +75,7 @@ const Marketplace: React.FC = () => {
         setFormData({
           title: "",
           description: "",
-          author: "",
+          author: localStorage.getItem("user_id") || "",
           strategy_date: "",
           stock_symbol: "",
           trade_type: "",
@@ -89,6 +102,61 @@ const Marketplace: React.FC = () => {
     }));
   };
 
+  const handleStockSymbolSearch = async (query: string) => {
+    if (query.length >= 2) {
+      setIsSearching(true);
+      try {
+        const response = await searchStockData(query);
+        setSearchResults(response.data);
+        setShowDropdown(true);
+      } catch (error) {
+        console.error("Search error:", error);
+      } finally {
+        setIsSearching(false);
+      }
+    } else {
+      setSearchResults({});
+      setShowDropdown(false);
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (searchQuery.length >= 2) {
+        setIsSearching(true);
+        try {
+          const response = await searchStockData(searchQuery);
+          setSearchResults(response.data);
+          setShowResults(true);
+        } catch (error) {
+          console.error("Search error:", error);
+        } finally {
+          setIsSearching(false);
+        }
+      } else {
+        setSearchResults({});
+        setShowResults(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
+        setShowResults(false);
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   if (loading)
     return (
       <div className="flex justify-center items-center h-screen">
@@ -112,11 +180,11 @@ const Marketplace: React.FC = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
         {strategies?.map((strategy) => (
           <div
             key={strategy.id}
-            className="bg-gray-800 rounded-xl p-4 sm:p-6 shadow-xl border border-gray-700 hover:border-blue-500 transition-all duration-300 transform hover:scale-[1.02]"
+            className="transform sm:transform-none scale-90 sm:scale-100 bg-gray-800 rounded-xl p-3 sm:p-6 shadow-xl border border-gray-700 hover:border-blue-500 transition-all duration-300 hover:scale-95"
           >
             <div className="flex flex-col sm:flex-row justify-between items-start gap-2 sm:items-center mb-3">
               <h2 className="text-lg sm:text-xl font-semibold text-white">
@@ -238,20 +306,55 @@ const Marketplace: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-gray-300 text-xs mb-1">
-                    Stock Symbol *
-                  </label>
+              <div className="relative stock-symbol-search">
+                <label className="block text-gray-300 text-xs mb-1">
+                  Stock Symbol *
+                </label>
+                <div className="relative">
                   <input
                     type="text"
                     name="stock_symbol"
                     value={formData.stock_symbol}
-                    onChange={handleChange}
-                    placeholder="e.g., RELIANCE"
-                    className="w-full p-2 bg-gray-700/50 text-white rounded-lg focus:ring-1 focus:ring-blue-500 border-none text-sm"
+                    onChange={(e) => {
+                      handleChange(e);
+                      handleStockSymbolSearch(e.target.value);
+                    }}
+                    placeholder="Search stock symbol..."
+                    className="w-full p-2 pr-8 bg-gray-700/50 text-white rounded-lg focus:ring-1 focus:ring-blue-500 border-none text-sm"
+                    autoComplete="off"
                   />
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                    {isSearching ? (
+                      <FiLoader className="animate-spin text-gray-400" />
+                    ) : (
+                      <FiSearch className="text-gray-400" />
+                    )}
+                  </div>
                 </div>
+
+                {showDropdown && Object.keys(searchResults).length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto bg-gray-800/95 rounded-lg border border-gray-700 shadow-xl backdrop-blur-sm">
+                    {Object.entries(searchResults).map(([symbol, name]) => (
+                      <button
+                        key={symbol}
+                        onClick={() => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            stock_symbol: symbol,
+                          }));
+                          setShowDropdown(false);
+                        }}
+                        className="w-full text-left px-4 py-2 hover:bg-gray-700/70 text-sm text-white flex flex-col gap-1 transition-colors"
+                      >
+                        <span className="font-medium">{symbol}</span>
+                        <span className="text-gray-400 text-xs">{name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-gray-300 text-xs mb-1">
                     Trade Type *
