@@ -19,7 +19,7 @@ const portfolioSchema = new mongoose.Schema({
             average_price: {
                 type: Number,
                 required: true
-            }
+            },
         }
     ]
 },
@@ -27,5 +27,5 @@ const portfolioSchema = new mongoose.Schema({
         timestamps: true
     });
 
-const OldPortfolio = mongoose.model("Portfolio", portfolioSchema);
-export default OldPortfolio;
+const Portfolio = mongoose.model("Portfolio", portfolioSchema);
+export default Portfolio;
