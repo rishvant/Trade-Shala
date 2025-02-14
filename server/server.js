@@ -8,7 +8,8 @@ import stocksRoutes from "./routes/stocksRoutes.js";
 import authRoutes from './routes/authRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import connectSocket from "./lib/socketio.js";
-import transactionRoutes from './routes/transactionRoutes.js'
+import transactionRoutes from './routes/transactionRoutes.js';
+import portfolioRoutes from './routes/portfolioRoutes.js';
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -19,6 +20,7 @@ app.use("/api/stocks", stocksRoutes);
 app.use("/api", orderRoutes);
 app.use('/api/v1', authRoutes);
 app.use("/api/transactions", transactionRoutes);
+app.use("/api", portfolioRoutes);
 
 app.get('/', (req, res) => {
     res.send(`<h1>this is server</h1>`);
@@ -26,7 +28,7 @@ app.get('/', (req, res) => {
 const server = http.createServer(app);
 
 await connectSocket(server);
- 
+
 server.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });

@@ -209,6 +209,8 @@ const connectSocket = async (app) => {
           user_id,
         } = orderDetails;
 
+        console.log(orderDetails)
+
         // Validate the required fields
         if (!stock_symbol || !order_type || !order_category || !type || !quantity || !execution_price || !user_id) {
           socket.emit('error', 'All order details are required.');
@@ -231,11 +233,6 @@ const connectSocket = async (app) => {
         // Validate prices: execution_price and completion_price must be positive numbers
         if (execution_price <= 0 || isNaN(execution_price)) {
           socket.emit('error', 'Execution price must be a positive number.');
-          return;
-        }
-
-        if (completion_price <= 0 || isNaN(completion_price)) {
-          socket.emit('error', 'Completion price must be a positive number.');
           return;
         }
 
@@ -272,7 +269,7 @@ const connectSocket = async (app) => {
           completion_price,
           limit_price: order_type === 'limit' ? limit_price : undefined, // Save limit_price only for limit orders
           user_id,
-          order_status: 'pending', // Set initial status as 'pending'
+          order_status: order_type === "limit" ? "pending" : "executed", // Set initial status as 'pending'
         });
 
         await newOrder.save();
@@ -286,8 +283,9 @@ const connectSocket = async (app) => {
             holdings: [
               {
                 stock_symbol,
-                quantity: order_category === 'buy' ? quantity : -quantity,
+                quantity,
                 average_price: execution_price,
+                trade_type: type,
               },
             ],
           });
@@ -297,17 +295,19 @@ const connectSocket = async (app) => {
             (stock) => stock.stock_symbol === stock_symbol
           );
 
+          console.log(portfolio)
+          console.log(stockIndex)
+
           if (stockIndex === -1) {
             // If stock doesn't exist in portfolio, add it
-            portfolio.stocks.push({
+            portfolio.holdings.push({
               stock_symbol,
-              quantity: order_category === 'buy' ? quantity : -quantity,
+              quantity,
               average_price: execution_price,
             });
           } else {
             // If stock exists in portfolio, update the quantity
-            portfolio.stocks[stockIndex].quantity +=
-              order_category === 'buy' ? quantity : -quantity;
+            portfolio.holdings[stockIndex].quantity += quantity;
             // Optionally, calculate a new average price for the stock based on previous prices
           }
 
@@ -335,9 +335,9 @@ const connectSocket = async (app) => {
         socket.emit('orderPlaced', { message: 'Order placed successfully', order: newOrder });
         console.log('🚀 Order placed successfully:', newOrder);
 
-        if (order_category === 'intraday') {
-          scheduleIntradayOrderExecution(newOrder._id);
-        }
+        // if (order_category === 'intraday') {
+        //   scheduleIntradayOrderExecution(newOrder._id);
+        // }
       } catch (error) {
         console.error('Error placing order:', error);
         socket.emit('error', 'Error placing the order.');

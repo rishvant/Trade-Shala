@@ -63,7 +63,7 @@ const GeminiChatbot: React.FC<GeminiChatbotProps> = ({ apiKey }) => {
         generationConfig,
         history: messages.map(({ role, content }) => ({
           role: role === "user" ? "user" : "model",
-          parts: [{ text: content + "answer in short and concise" }],
+          parts: [{ text: content }],
         })),
       });
       const result = await chatSession.sendMessage(message);

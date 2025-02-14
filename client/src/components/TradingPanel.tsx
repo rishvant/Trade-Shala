@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTrade } from "../context/context";
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:3000");
 
 interface TradingPanelProps {
   currentPrice: number;
@@ -15,7 +18,7 @@ type OrderType = "MARKET" | "LIMIT" | "SL" | "SL-M";
 const TradingPanel: React.FC<TradingPanelProps> = ({
   currentPrice,
   symbol,
-  onTradeComplete
+  onTradeComplete,
 }) => {
   const { addOrder, balance } = useTrade();
   const [tradeType, setTradeType] = useState<TradeType>("INTRADAY");
@@ -32,54 +35,31 @@ const TradingPanel: React.FC<TradingPanelProps> = ({
   const [optionType, setOptionType] = useState<"CALL" | "PUT">("CALL");
 
   const totalAmount = currentPrice * quantity;
-  const margin = tradeType === "INTRADAY" ? totalAmount * 0.2 : totalAmount; // 20% margin for intraday
+  const margin = tradeType === "INTRADAY" ? totalAmount * 0.2 : totalAmount;
 
-  const handleTrade = async (action: "buy" | "sell") => {
-    try {
-      // Validate balance
-      if (action === "buy" && margin > balance) {
-        alert("Insufficient balance for this trade");
-        return;
-      }
+  const handleTrade = (action: "buy" | "sell") => {
+    const orderData = {
+      stock_symbol: symbol,
+      order_type: orderType.toLowerCase(),
+      order_category: tradeType.toLowerCase(),
+      type: action,
+      quantity,
+      execution_price: currentPrice,
+      limit_price: orderType === "LIMIT" ? limitPrice : undefined,
+      user_id: localStorage.getItem("user_id"),
+    };
 
-      // Validate order parameters
-      if (orderType === "LIMIT" && !limitPrice) {
-        alert("Please specify a limit price");
-        return;
-      }
+    socket.emit("placeOrder", orderData);
 
-      if ((orderType === "SL" || orderType === "SL-M") && !triggerPrice) {
-        alert("Please specify a trigger price");
-        return;
-      }
-
-      const orderData = {
-        symbol,
-        type: orderType,
-        tradeType: action.toUpperCase(),
-        action,
-        quantity,
-        price: orderType === "MARKET" ? currentPrice : limitPrice,
-        stopLoss,
-        target,
-        triggerPrice,
-        // F&O specific fields
-        ...(tradeType === "OPTIONS" && {
-          expiryDate,
-          strikePrice,
-          optionType,
-        }),
-      };
-
-      console.log("Submitting order:", orderData);
-      await addOrder(orderData);
-      onTradeComplete(orderData);
-      alert(`${action.toUpperCase()} order placed successfully!`);
+    socket.on("orderPlaced", (response) => {
+      alert(response.message);
+      onTradeComplete(response.order);
       resetForm();
-    } catch (error) {
-      console.error("Order error:", error);
-      alert("Failed to place order. Please try again.");
-    }
+    });
+
+    socket.on("error", (error) => {
+      alert(error);
+    });
   };
 
   const resetForm = () => {

@@ -3,7 +3,11 @@ import { Clock, ArrowUpDown, TrendingUp, TrendingDown, X } from "lucide-react";
 import StockChart from "../components/StockChart";
 import TradingPanel from "../components/TradingPanel";
 import StockSkeleton from "../components/StockSkeleton";
-import { fetchStockData, searchStockData } from "../services/stockService";
+import {
+  fetchPortfolios,
+  fetchStockData,
+  searchStockData,
+} from "../services/stockService";
 import { useParams, useNavigate } from "react-router-dom";
 import { StockName } from "../types/types";
 import { io } from "socket.io-client";
@@ -11,6 +15,7 @@ import dayjs from "dayjs";
 import Modal from "react-modal";
 import { toast } from "sonner";
 import { TechnicalAnalysis } from "react-ts-tradingview-widgets";
+
 const transformCandleData = (data: any) => {
   if (!data?.candles) return [];
 
@@ -28,12 +33,11 @@ interface Position {
   symbol: string;
   quantity: number;
   avgPrice: number;
-  currentPrice: number;
+  currentPrice: number; // Mocked for now
   pnl: number;
   pnlPercentage: number;
-  type: string;
   tradeType: "BUY" | "SELL";
-  timestamp: string;
+  type: "INTRADAY" | "DELIVERY";
 }
 
 function Stock() {
@@ -185,53 +189,50 @@ function Stock() {
 
   // Handler for new trades
   const handleNewTrade = (orderData: any) => {
-    const { symbol, quantity, price, tradeType, type } = orderData;
-
-    const newPosition: Position = {
-      id: Date.now().toString(),
-      symbol,
-      quantity: Number(quantity),
-      avgPrice: Number(price),
-      currentPrice: Number(price),
-      pnl: 0, // Will be calculated in real-time
-      pnlPercentage: 0,
-      type: type || "INTRADAY",
-      tradeType,
-      timestamp: new Date().toISOString(),
-    };
-
-    setPositions((prevPositions) => {
-      // For buy orders, check and update existing positions
-      if (tradeType === "BUY") {
-        const existingPosition = prevPositions.find(
-          (p) => p.symbol === symbol && p.tradeType === "BUY"
-        );
-
-        if (existingPosition) {
-          return prevPositions.map((position) => {
-            if (position.symbol === symbol && position.tradeType === "BUY") {
-              const totalQuantity = position.quantity + Number(quantity);
-              const newAvgPrice =
-                (position.avgPrice * position.quantity + price * quantity) /
-                totalQuantity;
-
-              return {
-                ...position,
-                quantity: totalQuantity,
-                avgPrice: newAvgPrice,
-                currentPrice: price,
-                pnl: (price - newAvgPrice) * totalQuantity,
-                pnlPercentage: ((price - newAvgPrice) / newAvgPrice) * 100,
-              };
-            }
-            return position;
-          });
-        }
-      }
-
-      // For both new BUY positions and all SELL positions, add as new entry
-      return [...prevPositions, newPosition];
-    });
+    console.log("New trade:", orderData);
+    fetchPositions();
+    // const { symbol, quantity, price, tradeType, type } = orderData;
+    // const newPosition: Position = {
+    //   id: Date.now().toString(),
+    //   symbol,
+    //   quantity: Number(quantity),
+    //   avgPrice: Number(price),
+    //   currentPrice: Number(price),
+    //   pnl: 0, // Will be calculated in real-time
+    //   pnlPercentage: 0,
+    //   type: type || "INTRADAY",
+    //   tradeType,
+    //   timestamp: new Date().toISOString(),
+    // };
+    // setPositions((prevPositions) => {
+    //   // For buy orders, check and update existing positions
+    //   if (tradeType === "BUY") {
+    //     const existingPosition = prevPositions.find(
+    //       (p) => p.symbol === symbol && p.tradeType === "BUY"
+    //     );
+    //     if (existingPosition) {
+    //       return prevPositions.map((position) => {
+    //         if (position.symbol === symbol && position.tradeType === "BUY") {
+    //           const totalQuantity = position.quantity + Number(quantity);
+    //           const newAvgPrice =
+    //             (position.avgPrice * position.quantity + price * quantity) /
+    //             totalQuantity;
+    //           return {
+    //             ...position,
+    //             quantity: totalQuantity,
+    //             avgPrice: newAvgPrice,
+    //             currentPrice: price,
+    //             pnl: (price - newAvgPrice) * totalQuantity,
+    //             pnlPercentage: ((price - newAvgPrice) / newAvgPrice) * 100,
+    //           };
+    //         }
+    //         return position;
+    //       });
+    //     }
+    //   }
+    //   // For both new BUY positions and all SELL positions, add as new entry
+    //   return [...prevPositions, newPosition];
+    // });
   };
 
   // Update P&L when price changes
@@ -258,10 +259,10 @@ function Stock() {
     }
   }, [currentPrice]);
 
-  const handleClosePosition = (position: Position) => {
-    setSelectedPosition(position);
-    setModalIsOpen(true);
-  };
+  // const handleClosePosition = (position: Position) => {
+  //   setSelectedPosition(position);
+  //   setModalIsOpen(true);
+  // };
 
   const confirmClosePosition = () => {
     if (selectedPosition) {
@@ -296,6 +297,52 @@ function Stock() {
 
   const openTechnicalAnalysis = () => {
     setIsTechnicalAnalysisOpen(true);
+  };
+
+  const fetchPositions = async () => {
+    try {
+      const user_id = localStorage.getItem("user_id");
+      const response = await fetchPortfolios(user_id || "");
+      console.log(response);
+      const data = response.data;
+
+      // Map API response to Position structure
+      const formattedPositions: Position[] = data.flatMap((item: any) =>
+        item.holdings
+          .filter((stock: any) => stock.stock_symbol === stockName)
+          .map((holding: any) => {
+            // const currentPrice =
+            //   holding.average_price * (1 + Math.random() * 0.1 - 0.05); // Mocked
+            const pnl =
+              (currentPrice - holding.average_price) * holding.quantity;
+            return {
+              id: holding._id,
+              symbol: holding.stock_symbol,
+              quantity: holding.quantity,
+              avgPrice: holding.average_price,
+              currentPrice,
+              pnl,
+              pnlPercentage:
+                (pnl / (holding.average_price * holding.quantity)) * 100,
+              tradeType: holding.trade_type, // Assuming it's always a buy position
+              type: holding.trade_category, // Assuming it's a delivery trade
+            };
+          })
+      );
+
+      setPositions(formattedPositions);
+    } catch (error) {
+      console.error("Error fetching positions:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPositions();
+  }, [stockName]);
+
+  const handleClosePosition = (position: Position) => {
+    console.log(`Closing position for ${position.symbol}`);
+    setPositions(positions.filter((p) => p.id !== position.id));
   };
 
   if (isLoading) {
@@ -422,7 +469,6 @@ function Stock() {
                   </div>
                 </div>
               </div>
-
               <div className="bg-[#1E222D] p-6 rounded-lg shadow-lg border border-gray-800">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-xl font-bold text-white">
@@ -445,8 +491,8 @@ function Stock() {
                     </span>
                   </span>
                 </div>
+
                 <div className="space-y-4">
-                  {/* yaha se start hai current positions */}
                   {positions.map((position) => (
                     <div
                       key={position.id}
@@ -500,12 +546,10 @@ function Stock() {
                             )}
                             {position.pnl >= 0 ? "+" : ""}₹
                             {Math.abs(position.pnl).toFixed(2)} (
-                            {position.pnl >= 0 ? "+" : ""}
                             {position.pnlPercentage.toFixed(2)}%)
                           </p>
                         </div>
                       </div>
-                      {/* Close Position Button */}
                       <button
                         onClick={() => handleClosePosition(position)}
                         className="absolute top-2 right-2 p-1 rounded-full hover:bg-red-500/20 transition-all"

@@ -24,3 +24,13 @@ export const searchStockData = async (symbol: string) => {
     throw error;
   }
 };
+
+export const fetchPortfolios = async (user_id: string) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/portfolio/user/${user_id}`);
+    return response;
+  } catch (error) {
+    console.error("Error fetching portfolios:", error);
+    throw error;
+  }
+};
