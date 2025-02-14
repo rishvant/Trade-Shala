@@ -125,18 +125,20 @@ const Marketplace: React.FC = () => {
         <h1 className="text-2xl sm:text-3xl font-bold text-white bg-gradient-to-r from-blue-500 to-purple-500 p-3 sm:p-4 rounded-lg shadow-lg w-full sm:w-auto">
           Trading Strategies Marketplace
         </h1>
-        <button
-          onClick={() => setShowMyStrategies((prev) => !prev)}
-          className="bg-gradient-to-r from-green-600 to-green-800 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 w-full sm:w-auto"
-        >
-          {showMyStrategies ? "Show All Strategies" : "My Strategies"}
-        </button>
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2 w-full sm:w-auto justify-center"
-        >
-          <span className="text-xl">+</span> Add Strategy
-        </button>
+        <div className="flex flex-wrap gap-4">
+          <button
+            onClick={() => setShowMyStrategies((prev) => !prev)}
+            className="bg-gradient-to-r from-green-600 to-green-800 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 w-full sm:w-auto"
+          >
+            {showMyStrategies ? "Show All Strategies" : "My Strategies"}
+          </button>
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2 w-full sm:w-auto justify-center"
+          >
+            <span className="text-xl">+</span> Add Strategy
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
