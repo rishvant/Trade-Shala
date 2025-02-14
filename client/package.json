@@ -31,7 +31,7 @@
     "lightweight-charts": "^4.2.3",
     "lucide-react": "^0.474.0",
     "openai": "^4.83.0",
-    "opexbot": "^0.8.3",
+    "opexbot": "^0.2.3",
     "react": "^18.3.1",
     "react-chatbot-kit": "^2.2.2",
     "react-chatbotify": "^2.0.0-beta.26",
