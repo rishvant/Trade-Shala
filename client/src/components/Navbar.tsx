@@ -136,6 +136,12 @@ const Navbar = () => {
             Home
           </Link>
           <Link
+            to="/marketplace"
+            className="text-gray-300 hover:text-white transition-colors duration-300"
+          >
+            Marketplace
+          </Link>
+          <Link
             to="/news"
             className="text-gray-300 hover:text-white transition-colors duration-300"
           >

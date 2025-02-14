@@ -444,6 +444,110 @@ const connectSocket = async (app) => {
       }
     });
 
+    socket.on("completeOrder", async (orderDetails) => {
+      try {
+        const { stock_symbol, completion_price, user_id, order_type } = orderDetails;
+
+        // Validate the required fields
+        if (!stock_symbol || !completion_price || !user_id) {
+          socket.emit("error", "All order details are required for completion.");
+          return;
+        }
+
+        // Validate user existence
+        const user = await User.findById(user_id);
+        if (!user) {
+          socket.emit("error", "User not found.");
+          return;
+        }
+
+        // Fetch user portfolio
+        const portfolio = await Portfolio.findOne({ user_id });
+        if (!portfolio) {
+          socket.emit("error", "No holdings found in your portfolio.");
+          return;
+        }
+
+        // Find the stock in portfolio
+        const stockIndex = portfolio.holdings.findIndex(
+          (stock) => stock.stock_symbol === stock_symbol
+        );
+
+        if (stockIndex === -1) {
+          socket.emit("error", "Stock not found in portfolio.");
+          return;
+        }
+
+        const stock = portfolio.holdings[stockIndex];
+
+        if (order_type === "sell") {
+          // Ensure user has enough quantity to sell
+          if (stock.quantity < quantity) {
+            socket.emit("error", "Insufficient quantity to sell.");
+            return;
+          }
+
+          // Deduct the sold quantity
+          stock.quantity -= quantity;
+
+          // Add virtual balance for selling stocks
+          user.virtualBalance += completion_price * quantity;
+
+          // Remove the stock from portfolio if quantity becomes zero
+          if (stock.quantity === 0) {
+            portfolio.holdings.splice(stockIndex, 1);
+          }
+        } else if (order_category === "buy") {
+          // Deduct virtual balance for buying stocks
+          const totalCost = execution_price * quantity;
+          if (user.virtualBalance < totalCost) {
+            socket.emit("error", "Insufficient virtual balance.");
+            return;
+          }
+
+          user.virtualBalance -= totalCost;
+
+          if (stockIndex === -1) {
+            // If stock doesn't exist in portfolio, add it
+            portfolio.holdings.push({
+              stock_symbol,
+              quantity,
+              average_price: execution_price,
+            });
+          } else {
+            // Update the quantity and adjust average price
+            const newTotalQuantity = stock.quantity + quantity;
+            stock.average_price =
+              (stock.average_price * stock.quantity + execution_price * quantity) / newTotalQuantity;
+            stock.quantity = newTotalQuantity;
+          }
+        }
+
+        await portfolio.save();
+        await user.save();
+
+        // Emit the response with the updated order
+        socket.emit("orderCompleted", {
+          message: "Order completed successfully",
+          stock_symbol,
+          order_category,
+          quantity,
+          execution_price,
+        });
+
+        console.log("✅ Order completed successfully:", {
+          stock_symbol,
+          order_category,
+          quantity,
+          execution_price,
+        });
+      } catch (error) {
+        console.error("Error completing order:", error);
+        socket.emit("error", "Error completing the order.");
+      }
+    });
+
+
     // Handle socket.io disconnect and close the associated WebSocket
     socket.on("disconnect", (reason) => {
       // console.log(`Socket.io client disconnected. Reason: ${reason}`);
