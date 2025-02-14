@@ -16,7 +16,9 @@ import CompanyProfile from "./pages/CompanyProfile";
 import GeminiChatbot from "./Chatbot";
 import TechnicalAnalysisPage from "./pages/TechnicalAnalysisPage";
 import Marketplace from "./pages/Marketplace";
+import ProtectedRoute from "./components/Protected";
 // import TradingWidgets from "./components/TradingWidgets";
+
 function App() {
   return (
     <TradeProvider>
@@ -28,13 +30,55 @@ function App() {
           <Route path="/login/phone" element={<LoginByPhone />} />
           <Route path="/login/email" element={<LoginByEmail />} />
           <Route path="/contact" element={<ContactUs />} />
-          <Route path="/wallet" element={<WalletPage />} />
+          <Route
+            path="/wallet"
+            element={
+              <ProtectedRoute>
+                <WalletPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/news" element={<News />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/stock/:stockName" element={<Stock />} />
-          <Route path="/technical-analysis/:stockName" element={<TechnicalAnalysisPage />} />
-          <Route path="/company/:companyName" element={<CompanyProfile />} />
-          <Route path="/marketplace" element={<Marketplace />} />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/stock/:stockName"
+            element={
+              <ProtectedRoute>
+                <Stock />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/technical-analysis/:stockName"
+            element={
+              <ProtectedRoute>
+                <TechnicalAnalysisPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/company/:companyName"
+            element={
+              <ProtectedRoute>
+                <CompanyProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/marketplace"
+            element={
+              <ProtectedRoute>
+                <Marketplace />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
         <GeminiChatbot apiKey="AIzaSyBvX1pXSK0h3ZANvyzeyNsje9FHSHFXp2U" />
         <Footer />

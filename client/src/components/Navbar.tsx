@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { Search, X } from "lucide-react";
 import axios from "axios";
 import { searchStockData } from "../services/stockService";
+import { toast } from "sonner";
 
 interface SearchResult {
   [key: string]: string;
@@ -25,9 +26,9 @@ const Navbar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  const trade = useTrade();
-  const isLogin = trade.isLogin;
-  const setIsLogin = trade.setIsLogin;
+  const isLogin = localStorage.getItem("token") ? true : false;
+
+  console.log(isLogin);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -41,9 +42,10 @@ const Navbar = () => {
   };
 
   const handleLogout = () => {
-    setIsLogin(false);
     localStorage.removeItem("token");
+    localStorage.removeItem("user_id");
     localStorage.removeItem("userData");
+    toast.error("Logged out successfully!");
     navigate("/login");
   };
 
