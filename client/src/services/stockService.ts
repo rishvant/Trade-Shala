@@ -10,7 +10,7 @@ export const fetchStockData = async (path: string) => {
     console.error("Error fetching stock data:", {
       message: error.message,
       response: error.response?.data,
-      status: error.response?.status
+      status: error.response?.status,
     });
     throw error;
   }
@@ -18,13 +18,15 @@ export const fetchStockData = async (path: string) => {
 
 export const searchStockData = async (symbol: string) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/stocks/search?symbol=${symbol}`);
+    const response = await axios.get(
+      `${API_BASE_URL}/stocks/search?symbol=${symbol}`
+    );
     return response;
   } catch (error: any) {
     console.error("Error searching stock data:", {
       message: error.message,
       response: error.response?.data,
-      status: error.response?.status
+      status: error.response?.status,
     });
     throw error;
   }
