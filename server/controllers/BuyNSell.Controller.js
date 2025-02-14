@@ -2,10 +2,6 @@ import Transaction from "../models/Transactions.Model.js";
 import Portfolio from "../models/IndiPortfolio.Model.js";
 import Order from "../models/Order.Model.js";
 import Stock from "../models/Stock.Schema.js"; // Importing the Stock model
-<<<<<<< HEAD
-=======
-// import Stock from "../models/Stock.js"; // Importing the Stock model
->>>>>>> 342db9a7ed6e4e888f0d1ac97ecbbebced18fbec
 import User from "../models/User.Model.js";
 
 export const buyStock = async (req, res) => {
