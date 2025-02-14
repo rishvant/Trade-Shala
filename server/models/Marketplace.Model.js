@@ -19,8 +19,8 @@ const strategySchema = new mongoose.Schema({
         required: true
     },
     trade_type: {
-        type: Date,
-        default: Date.now
+        type: String,
+        required: true
     },
     strategy_date: {
         type: Date,

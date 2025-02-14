@@ -3,21 +3,18 @@ import { TrendingUp, TrendingDown, X } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface Position {
-  id: string;
-  symbol: string;
-  type: "INTRADAY" | "DELIVERY" | "FUTURES" | "OPTIONS";
+  _id: string;
+  stock_symbol: string;
+  order_category: "intraday" | "delivery" | "futures" | "options";
   quantity: number;
-  avgPrice: number;
-  currentPrice: number;
+  execution_price: number;
+  current_price: number; // You need to provide this dynamically
   pnl: number;
   pnlPercentage: number;
-  // Additional fields for F&O
-  expiryDate?: string;
-  strikePrice?: number;
-  optionType?: "CALL" | "PUT";
-  // Trade details
-  tradeDate: string;
-  lastUpdated: string;
+  type: "buy" | "sell";
+  order_type: "market" | "limit";
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface CurrentPositionsProps {
@@ -38,75 +35,62 @@ const CurrentPositions: React.FC<CurrentPositionsProps> = ({
     }
   };
 
+  const totalPnL = positions.reduce((acc, position) => acc + position.pnl, 0);
+
   return (
     <div className="bg-[#1E222D] rounded-lg shadow-lg border border-gray-800 p-6">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-xl font-bold text-white">Current Positions</h3>
-        <div className="flex items-center space-x-4">
-          <span className="text-sm text-gray-400">
-            Total P&L:
-            <span
-              className={`ml-2 font-semibold ${
-                positions.reduce((total, pos) => total + pos.pnl, 0) >= 0
-                  ? "text-green-400"
-                  : "text-red-400"
-              }`}
-            >
-              ₹{positions.reduce((total, pos) => total + pos.pnl, 0).toFixed(2)}
-            </span>
-          </span>
-        </div>
+        <span
+          className={`text-sm font-semibold ${
+            totalPnL >= 0 ? "text-green-400" : "text-red-400"
+          }`}
+        >
+          Total P&L: ₹{totalPnL?.toFixed(2)}
+        </span>
       </div>
 
       <div className="space-y-4">
-        <div>
-          {positions.map((position) => (
+        {positions.length > 0 ? (
+          positions.map((position) => (
             <motion.div
-              key={position.id}
+              key={position._id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="bg-[#262B3D] rounded-lg p-4 hover:bg-[#2A2F44] transition-colors relative group"
             >
-              {/* Position Header */}
               <div className="flex justify-between items-start mb-2">
                 <div>
-                  <div className="flex items-center">
-                    <h4 className="text-white font-semibold">
-                      {position.symbol}
-                    </h4>
-                    <span
-                      className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                        position.type === "INTRADAY"
-                          ? "bg-blue-500/20 text-blue-400"
-                          : position.type === "DELIVERY"
-                          ? "bg-green-500/20 text-green-400"
-                          : "bg-purple-500/20 text-purple-400"
-                      }`}
-                    >
-                      {position.type}
-                    </span>
-                  </div>
+                  <h4 className="text-white font-semibold">
+                    {position.stock_symbol}
+                  </h4>
+                  <span
+                    className={`px-2 py-0.5 text-xs rounded-full ${
+                      position.order_category === "intraday"
+                        ? "bg-blue-500/20 text-blue-400"
+                        : "bg-green-500/20 text-green-400"
+                    }`}
+                  >
+                    {position.order_category.toUpperCase()}
+                  </span>
                   <p className="text-sm text-gray-400">
-                    Qty: {position.quantity} | Avg: ₹
-                    {position.avgPrice.toFixed(2)}
+                    Qty: {position.quantity} | Exec: ₹
+                    {position.execution_price?.toFixed(2)}
                   </p>
                 </div>
-
-                {/* Close Position Button */}
                 <button
-                  onClick={() => handleClosePosition(position.id)}
-                  className="z-10 top-2 absoluteright-2 p-1 rounded-full hover:bg-red-500/20 transition-all"
+                  onClick={() => handleClosePosition(position._id)}
+                  className="p-1 rounded-full hover:bg-red-500/20 transition-all"
                   title="Close Position"
                 >
                   <X className="h-4 w-4 text-red-400" />
                 </button>
               </div>
 
-              {/* Position Details */}
               <div className="grid grid-cols-2 gap-4 mt-4">
                 <div className="text-right">
                   <p className="text-white">
-                    ₹{position.currentPrice.toFixed(2)}
+                    ₹{position.execution_price?.toFixed(2)}
                   </p>
                   <p
                     className={`text-sm flex items-center justify-end ${
@@ -118,60 +102,22 @@ const CurrentPositions: React.FC<CurrentPositionsProps> = ({
                     ) : (
                       <TrendingDown className="h-4 w-4 mr-1" />
                     )}
-                    {position.pnl >= 0 ? "+" : ""}₹
-                    {Math.abs(position.pnl).toFixed(2)} (
-                    {position.pnl >= 0 ? "+" : ""}
-                    {position.pnlPercentage.toFixed(2)}%)
+                    ₹{Math.abs(position.pnl)?.toFixed(2)} (
+                    {position.pnlPercentage?.toFixed(2)}%)
                   </p>
                 </div>
-
-                {/* F&O Specific Details */}
-                {(position.type === "FUTURES" ||
-                  position.type === "OPTIONS") && (
-                  <div className="col-span-2 mt-2 pt-2 border-t border-gray-700">
-                    <div className="grid grid-cols-3 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-400">Expiry:</span>
-                        <span className="text-white ml-2">
-                          {new Date(position.expiryDate!).toLocaleDateString()}
-                        </span>
-                      </div>
-                      {position.type === "OPTIONS" && (
-                        <>
-                          <div>
-                            <span className="text-gray-400">Strike:</span>
-                            <span className="text-white ml-2">
-                              ₹{position.strikePrice?.toFixed(2)}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-gray-400">Type:</span>
-                            <span className="text-white ml-2">
-                              {position.optionType}
-                            </span>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Trade Time Details */}
                 <div className="col-span-2 mt-2 text-xs text-gray-500">
                   <span>
-                    Opened: {new Date(position.tradeDate).toLocaleString()}
+                    Opened: {new Date(position.createdAt).toLocaleString()}
                   </span>
                   <span className="ml-4">
-                    Last Updated:{" "}
-                    {new Date(position.lastUpdated).toLocaleString()}
+                    Updated: {new Date(position.updatedAt).toLocaleString()}
                   </span>
                 </div>
               </div>
             </motion.div>
-          ))}
-        </div>
-
-        {positions.length === 0 && (
+          ))
+        ) : (
           <div className="text-center py-8 text-gray-400">
             No open positions
           </div>
