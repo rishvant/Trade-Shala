@@ -82,7 +82,7 @@ const login = async (req, res) => {
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-    res.status(200).json({ message: "Login successful", token });
+    res.status(200).json({ message: "Login successful", token, user });
 };
 
 // Verify OTP and login user
@@ -96,7 +96,7 @@ const verifyAndLogin = async (req, res) => {
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-    res.status(200).json({ message: "OTP verified, login successful", token });
+    res.status(200).json({ message: "OTP verified, login successful", token, user });
 };
 
 // get user details 
@@ -133,4 +133,4 @@ const getUser = async (req, res) => {
     }
 };
 
-export { generateOTP, signup, login, verifyAndLogin , getUser};
+export { generateOTP, signup, login, verifyAndLogin, getUser };

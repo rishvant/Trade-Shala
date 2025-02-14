@@ -25,11 +25,12 @@ function LoginByEmail() {
     e.preventDefault();
     try {
       const response = await loginByEmail(form);
+      console.log(response);
       if (response.status === 200) {
-        localStorage.setItem("token", response.data.token); // Store token in local storage
-        console.log(response.data.message); // Handle successful login
-        toast.success(response.data.message || "Login successful!"); // Show success message
-        navigate("/"); // Redirect after successful login
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("user_id", response.data.user?._id);
+        toast.success(response.data.message || "Login successful!");
+        navigate("/");
       }
     } catch (error: any) {
       console.error(
@@ -135,10 +136,7 @@ function LoginByEmail() {
 
           <p className="text-center mt-6 text-gray-600">
             Don't have an account?{" "}
-            <Link
-              to="/signup"
-              className="text-blue-500 hover:text-blue-600"
-            >
+            <Link to="/signup" className="text-blue-500 hover:text-blue-600">
               Sign Up
             </Link>
           </p>

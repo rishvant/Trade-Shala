@@ -10,6 +10,7 @@ import orderRoutes from "./routes/orderRoutes.js";
 import connectSocket from "./lib/socketio.js";
 import stockRoutes from "./routes/stockRoutes.js";
 import transactionRoutes from './routes/transactionRoutes.js'
+import portfolioRoutes from './routes/portfolioRoutes.js';
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -34,10 +35,12 @@ app.use((err, req, res, next) => {
 });
 app.use('/api/v1', authRoutes);
 app.use("/api/transactions", transactionRoutes);
+app.use("/api", portfolioRoutes);
 
 const server = http.createServer(app);
 
 await connectSocket(server);
+
 
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

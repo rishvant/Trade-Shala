@@ -52,6 +52,7 @@ function LoginByPhone() {
       console.log(response);
       if (response.status === 200) {
         localStorage.setItem("token", response.data.token);
+        localStorage.setItem("user_id", response.data.user?._id);
         toast.success("Login successful!");
         navigate("/");
       }
