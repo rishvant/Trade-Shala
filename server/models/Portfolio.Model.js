@@ -20,6 +20,9 @@ const portfolioSchema = new mongoose.Schema({
                 type: Number,
                 required: true
             },
+            trade_type: {
+                type: String,
+            },
         }
     ]
 },

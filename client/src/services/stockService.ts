@@ -36,7 +36,7 @@ export const searchStockData = async (symbol: string) => {
   }
 };
 
-export const fetchPortfolios = async (user_id: string) => {
+export const fetchPortfolios = async (user_id: string | null) => {
   try {
     const response = await axios.get(
       `${API_BASE_URL}/portfolio/user/${user_id}`

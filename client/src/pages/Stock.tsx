@@ -82,7 +82,7 @@ interface Position {
   currentPrice: number; // Mocked for now
   pnl: number;
   pnlPercentage: number;
-  tradeType: "BUY" | "SELL";
+  tradeType: "buy" | "sell";
   type: "INTRADAY" | "DELIVERY";
 }
 
@@ -313,7 +313,7 @@ function Stock() {
       setPositions((prevPositions) =>
         prevPositions.map((position) => {
           const pnl =
-            position.tradeType === "BUY"
+            position.tradeType === "buy"
               ? (currentPrice - position.avgPrice) * position.quantity
               : (position.avgPrice - currentPrice) * position.quantity;
           const pnlPercentage =
@@ -377,15 +377,15 @@ function Stock() {
       console.log(response);
       const data = response.data;
 
-      // Map API response to Position structure
       const formattedPositions: Position[] = data.flatMap((item: any) =>
         item.holdings
           .filter((stock: any) => stock.stock_symbol === stockName)
           .map((holding: any) => {
-            // const currentPrice =
-            //   holding.average_price * (1 + Math.random() * 0.1 - 0.05); // Mocked
             const pnl =
-              (currentPrice - holding.average_price) * holding.quantity;
+              holding.trade_type === "buy"
+                ? (currentPrice - holding.average_price) * holding.quantity
+                : (holding.average_price - currentPrice) * holding.quantity; // For sell trade_type
+
             return {
               id: holding._id,
               symbol: holding.stock_symbol,
@@ -395,8 +395,8 @@ function Stock() {
               pnl,
               pnlPercentage:
                 (pnl / (holding.average_price * holding.quantity)) * 100,
-              tradeType: holding.trade_type, // Assuming it's always a buy position
-              type: holding.trade_category, // Assuming it's a delivery trade
+              tradeType: holding.trade_type,
+              type: holding.trade_category,
             };
           })
       );
@@ -415,6 +415,8 @@ function Stock() {
     console.log(position);
     const orderData = {
       stock_symbol: stockName,
+      trade_type: position.tradeType,
+      quantity: position.quantity,
       completion_price: currentPrice,
       user_id: localStorage.getItem("user_id"),
     };
@@ -591,7 +593,7 @@ function Stock() {
                             </h4>
                             <span
                               className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                                position.tradeType === "BUY"
+                                position.tradeType === "buy"
                                   ? "bg-green-500/20 text-green-400"
                                   : "bg-red-500/20 text-red-400"
                               }`}

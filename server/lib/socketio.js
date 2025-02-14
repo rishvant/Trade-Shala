@@ -209,77 +209,36 @@ const connectSocket = async (app) => {
           type,
           quantity,
           execution_price,
-          completion_price,
           limit_price,
           user_id,
         } = orderDetails;
 
-        console.log(orderDetails)
-
-        // Validate the required fields
-        if (
-          !stock_symbol ||
-          !order_type ||
-          !order_category ||
-          !type ||
-          !quantity ||
-          !execution_price ||
-          !user_id
-        ) {
+        if (!stock_symbol || !order_type || !order_category || !type || !quantity || !execution_price || !user_id) {
           socket.emit("error", "All order details are required.");
           return;
         }
-        // Validate user existence (optional but recommended)
+
         const user = await User.findById(user_id);
         if (!user) {
           socket.emit("error", "User not found.");
           return;
         }
 
-        // Validate quantity (must be a positive number)
-        if (quantity <= 0 || isNaN(quantity)) {
-          socket.emit("error", "Quantity must be a positive number.");
+        if (quantity <= 0 || isNaN(quantity) || execution_price <= 0 || isNaN(execution_price)) {
+          socket.emit("error", "Quantity and execution price must be positive numbers.");
           return;
         }
 
-        // Validate prices: execution_price and completion_price must be positive numbers
-        if (execution_price <= 0 || isNaN(execution_price)) {
-          socket.emit("error", "Execution price must be a positive number.");
-          return;
-        }
-
-        // Validate limit_price: only applicable if the order type is 'limit'
         if (order_type === "limit") {
-          if (!limit_price || limit_price <= 0 || isNaN(limit_price)) {
-            socket.emit(
-              "error",
-              "Limit price must be a positive number for a limit order."
-            );
+          if (!limit_price || limit_price <= 0 || isNaN(limit_price) || execution_price > limit_price) {
+            socket.emit("error", "Invalid limit price for a limit order.");
             return;
           }
-          // If order type is 'limit', ensure execution_price is within the limit_price
-          if (execution_price > limit_price) {
-            socket.emit(
-              "error",
-              "Execution price cannot be higher than the limit price."
-            );
-            return;
-          }
-        } else if (order_type === "market") {
-          // For market orders, limit_price should not be provided
-          if (limit_price) {
-            socket.emit(
-              "error",
-              "Limit price should not be provided for market orders."
-            );
-            return;
-          }
-        } else {
-          socket.emit("error", "Invalid order type.");
+        } else if (order_type === "market" && limit_price) {
+          socket.emit("error", "Limit price should not be provided for market orders.");
           return;
         }
 
-        // Create and save the order in the database
         const newOrder = new Order({
           stock_symbol,
           order_type,
@@ -287,57 +246,43 @@ const connectSocket = async (app) => {
           type,
           quantity,
           execution_price,
-          completion_price,
-          limit_price: order_type === "limit" ? limit_price : undefined, // Save limit_price only for limit orders
+          limit_price: order_type === "limit" ? limit_price : undefined,
           user_id,
-          order_status: order_type === "limit" ? "pending" : "executed", // Set initial status as 'pending'
+          order_status: order_type === "limit" ? "pending" : "executed",
         });
 
         await newOrder.save();
 
-        // Update portfolio
-        const portfolio = await Portfolio.findOne({ user_id });
+        let portfolio = await Portfolio.findOne({ user_id });
         if (!portfolio) {
-          // If portfolio doesn't exist, create a new one
-          const newPortfolio = new Portfolio({
+          portfolio = new Portfolio({
             user_id,
-            holdings: [
-              {
-                stock_symbol,
-                quantity,
-                average_price: execution_price,
-                trade_type: type,
-              },
-            ],
+            holdings: [{
+              stock_symbol,
+              quantity,
+              average_price: execution_price,
+              trade_type: type,
+            }],
           });
-          await newPortfolio.save();
         } else {
-          const stockIndex = portfolio.holdings.findIndex(
-            (stock) => stock.stock_symbol === stock_symbol
-          );
-
-          console.log(portfolio)
-          console.log(stockIndex)
-
+          const stockIndex = portfolio.holdings.findIndex(h => h.stock_symbol === stock_symbol && h.trade_type === type);
           if (stockIndex === -1) {
-            // If stock doesn't exist in portfolio, add it
+            // Add as a new holding if trade_type differs
             portfolio.holdings.push({
               stock_symbol,
               quantity,
               average_price: execution_price,
+              trade_type: type,
             });
           } else {
-            // If stock exists in portfolio, update the quantity
-            portfolio.holdings[stockIndex].quantity += quantity;
-            // Optionally, calculate a new average price for the stock based on previous prices
+            const currentHolding = portfolio.holdings[stockIndex];
+            const newQuantity = currentHolding.quantity + quantity;
+            const newAvgPrice = ((currentHolding.average_price * currentHolding.quantity) + (execution_price * quantity)) / newQuantity;
+            portfolio.holdings[stockIndex] = { ...currentHolding, quantity: newQuantity, average_price: newAvgPrice, stock_symbol: currentHolding.stock_symbol, trade_type: currentHolding.trade_type };
           }
-
-          await portfolio.save();
         }
 
-        // Update virtual balance for the user
         if (order_category === "buy") {
-          // Deduct from the virtual balance when buying stocks
           const totalCost = execution_price * quantity;
           if (user.virtualBalance < totalCost) {
             socket.emit("error", "Insufficient virtual balance.");
@@ -345,23 +290,14 @@ const connectSocket = async (app) => {
           }
           user.virtualBalance -= totalCost;
         } else if (order_category === "sell") {
-          // Add to the virtual balance when selling stocks
-          const totalSaleAmount = execution_price * quantity;
-          user.virtualBalance += totalSaleAmount;
+          user.virtualBalance += execution_price * quantity;
         }
 
+        await portfolio.save();
         await user.save();
 
-        // Emit the response with the created order
-        socket.emit("orderPlaced", {
-          message: "Order placed successfully",
-          order: newOrder,
-        });
+        socket.emit("orderPlaced", { message: "Order placed successfully", order: newOrder });
         console.log("🚀 Order placed successfully:", newOrder);
-
-        // if (order_category === 'intraday') {
-        //   scheduleIntradayOrderExecution(newOrder._id);
-        // }
       } catch (error) {
         console.error("Error placing order:", error);
         socket.emit("error", "Error placing the order.");
@@ -446,33 +382,28 @@ const connectSocket = async (app) => {
 
     socket.on("completeOrder", async (orderDetails) => {
       try {
-        const { stock_symbol, completion_price, user_id, order_type } = orderDetails;
+        const { stock_symbol, completion_price, user_id, trade_type, quantity } = orderDetails;
 
-        // Validate the required fields
         if (!stock_symbol || !completion_price || !user_id) {
           socket.emit("error", "All order details are required for completion.");
           return;
         }
 
-        // Validate user existence
         const user = await User.findById(user_id);
         if (!user) {
           socket.emit("error", "User not found.");
           return;
         }
 
-        // Fetch user portfolio
         const portfolio = await Portfolio.findOne({ user_id });
         if (!portfolio) {
           socket.emit("error", "No holdings found in your portfolio.");
           return;
         }
 
-        // Find the stock in portfolio
-        const stockIndex = portfolio.holdings.findIndex(
-          (stock) => stock.stock_symbol === stock_symbol
-        );
+        console.log(trade_type)
 
+        const stockIndex = portfolio.holdings.findIndex((stock) => stock.stock_symbol === stock_symbol && stock.trade_type === trade_type);
         if (stockIndex === -1) {
           socket.emit("error", "Stock not found in portfolio.");
           return;
@@ -480,67 +411,38 @@ const connectSocket = async (app) => {
 
         const stock = portfolio.holdings[stockIndex];
 
-        if (order_type === "sell") {
-          // Ensure user has enough quantity to sell
-          if (stock.quantity < quantity) {
-            socket.emit("error", "Insufficient quantity to sell.");
-            return;
-          }
+        if (stock.quantity < quantity) {
+          socket.emit("error", "Insufficient quantity to sell.");
+          return;
+        }
 
-          // Deduct the sold quantity
-          stock.quantity -= quantity;
+        stock.quantity -= quantity;
+        user.virtualBalance += completion_price * quantity;
 
-          // Add virtual balance for selling stocks
-          user.virtualBalance += completion_price * quantity;
+        if (stock.quantity === 0) {
+          portfolio.holdings.splice(stockIndex, 1);
+        }
 
-          // Remove the stock from portfolio if quantity becomes zero
-          if (stock.quantity === 0) {
-            portfolio.holdings.splice(stockIndex, 1);
-          }
-        } else if (order_category === "buy") {
-          // Deduct virtual balance for buying stocks
-          const totalCost = execution_price * quantity;
-          if (user.virtualBalance < totalCost) {
-            socket.emit("error", "Insufficient virtual balance.");
-            return;
-          }
-
-          user.virtualBalance -= totalCost;
-
-          if (stockIndex === -1) {
-            // If stock doesn't exist in portfolio, add it
-            portfolio.holdings.push({
-              stock_symbol,
-              quantity,
-              average_price: execution_price,
-            });
-          } else {
-            // Update the quantity and adjust average price
-            const newTotalQuantity = stock.quantity + quantity;
-            stock.average_price =
-              (stock.average_price * stock.quantity + execution_price * quantity) / newTotalQuantity;
-            stock.quantity = newTotalQuantity;
-          }
+        // Update order with completion price and status
+        const order = await Order.findOne({ user_id, stock_symbol, order_status: { $in: ["pending", "executed"] } });
+        if (order) {
+          order.completion_price = completion_price;
+          order.order_status = "completed";
+          await order.save();
         }
 
         await portfolio.save();
         await user.save();
 
-        // Emit the response with the updated order
         socket.emit("orderCompleted", {
           message: "Order completed successfully",
           stock_symbol,
-          order_category,
+          trade_type,
           quantity,
-          execution_price,
+          completion_price,
         });
 
-        console.log("✅ Order completed successfully:", {
-          stock_symbol,
-          order_category,
-          quantity,
-          execution_price,
-        });
+        console.log("✅ Order completed successfully:", { stock_symbol, trade_type, quantity, completion_price });
       } catch (error) {
         console.error("Error completing order:", error);
         socket.emit("error", "Error completing the order.");

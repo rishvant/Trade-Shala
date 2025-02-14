@@ -35,24 +35,26 @@ const CurrentPositions: React.FC<CurrentPositionsProps> = ({
     }
   };
 
-  const totalPnL = positions.reduce((acc, position) => acc + position.pnl, 0);
+  const totalPnL = positions?.reduce((acc, position) => acc + position.pnl, 0);
 
   return (
     <div className="bg-[#1E222D] rounded-lg shadow-lg border border-gray-800 p-6">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-xl font-bold text-white">Current Positions</h3>
-        <span
-          className={`text-sm font-semibold ${
-            totalPnL >= 0 ? "text-green-400" : "text-red-400"
-          }`}
-        >
-          Total P&L: ₹{totalPnL?.toFixed(2)}
-        </span>
+        {positions?.length > 0 && (
+          <span
+            className={`text-sm font-semibold ${
+              totalPnL >= 0 ? "text-green-400" : "text-red-400"
+            }`}
+          >
+            Total P&L: ₹{totalPnL?.toFixed(2)}
+          </span>
+        )}
       </div>
 
       <div className="space-y-4">
-        {positions.length > 0 ? (
-          positions.map((position) => (
+        {positions?.length > 0 ? (
+          positions?.map((position) => (
             <motion.div
               key={position._id}
               initial={{ opacity: 0, y: 20 }}
