@@ -45,9 +45,12 @@ const TopGainers = () => {
           try {
             // Use intraday endpoint to fetch stock data
             const response = await fetchStockData(`intraday/${stock.symbol}`);
-            
+
             if (!response?.data?.data?.candles) {
-              console.error(`No data available for ${stock.symbol}:`, response.data);
+              console.error(
+                `No data available for ${stock.symbol}:`,
+                response.data
+              );
               return {
                 ...stock,
                 currentPrice: 0,
