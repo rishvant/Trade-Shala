@@ -1,22 +1,21 @@
 import mongoose from "mongoose";
 
-
+// for homepage
 const PortfolioSchema = new mongoose.Schema(
   {
     userId: {
-
-      type: Schema.Types.ObjectId,
+      type: mongoose.Types.ObjectId,
       ref: "User",
       required: true,
       unique: true,
       index: true,
-    },
+    },// isme home page ke according 1-2 cheeze aur add hongi
     balance: {
       type: Number,
       required: true,
       default: 0,
       min: 0,
-    },
+    }, // ye totalValue is the count of total no. of current holdings
     totalValue: {
       type: Number,
       required: true,
@@ -38,5 +37,5 @@ const PortfolioSchema = new mongoose.Schema(
 PortfolioSchema.index({ totalValue: -1 }); // For sorting portfolios by value
 PortfolioSchema.index({ updatedAt: -1 }); // For finding recently updated portfolios
 
-const Portfolio = mongoose.model("Portfolio", PortfolioSchema);
-export default Portfolio;
+const NewPortfolio = mongoose.model("NewPortfolio", PortfolioSchema);
+export default NewPortfolio;

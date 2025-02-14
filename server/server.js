@@ -9,6 +9,7 @@ import authRoutes from "./routes/authRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import connectSocket from "./lib/socketio.js";
 import stockRoutes from "./routes/stockRoutes.js";
+import transactionRoutes from './routes/transactionRoutes.js'
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -31,6 +32,8 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: "Something broke!" });
 });
+app.use('/api/v1', authRoutes);
+app.use("/api/transactions", transactionRoutes);
 
 const server = http.createServer(app);
 

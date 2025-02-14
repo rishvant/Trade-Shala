@@ -27,5 +27,5 @@ const portfolioSchema = new mongoose.Schema({
         timestamps: true
     });
 
-const Portfolio = mongoose.model("Portfolio", portfolioSchema);
-export default Portfolio;
+const OldPortfolio = mongoose.model("Portfolio", portfolioSchema);
+export default OldPortfolio;

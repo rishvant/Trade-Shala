@@ -1,16 +1,18 @@
-import mongoose from "mongoose";
+import mongoose, { mongo } from "mongoose";
+
+// Destructure Schema from mongoose
+// const { Schema } = mongoose;
 
 const TransactionSchema = new mongoose.Schema(
   {
-
     userId: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Types.ObjectId,
       ref: "User",
       required: true,
       index: true,
     },
     stockId: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Types.ObjectId,
       ref: "Stock",
       required: true,
       index: true,
@@ -69,4 +71,3 @@ TransactionSchema.index({ type: 1, status: 1 });
 const Transaction = mongoose.model("Transaction", TransactionSchema);
 
 export default Transaction;
-
