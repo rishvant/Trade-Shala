@@ -1,15 +1,20 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { format } from "date-fns";
-import { createStrategy, fetchStrategy } from "@/services/stockService";
+import {
+  createStrategy,
+  deleteStrategy,
+  fetchStrategy,
+} from "@/services/stockService";
 import { toast } from "sonner";
+import { Trash } from "lucide-react";
 
 interface Strategy {
-  id: string;
+  _id: string;
   title: string;
   description: string;
   author: {
     name: string;
+    _id: string;
   };
   stock_symbol: string;
   trade_type: string;
@@ -22,6 +27,7 @@ interface Strategy {
 
 const Marketplace: React.FC = () => {
   const [strategies, setStrategies] = useState<Strategy[]>([]);
+  const [showMyStrategies, setShowMyStrategies] = useState(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -77,6 +83,21 @@ const Marketplace: React.FC = () => {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this strategy?"
+    );
+    if (!confirmDelete) return;
+
+    try {
+      await deleteStrategy(id);
+      fetchStrategies();
+      toast.success("Strategy deleted successfully!");
+    } catch (error) {
+      toast.error("Failed to delete the strategy.");
+    }
+  };
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -105,6 +126,12 @@ const Marketplace: React.FC = () => {
           Trading Strategies Marketplace
         </h1>
         <button
+          onClick={() => setShowMyStrategies((prev) => !prev)}
+          className="bg-gradient-to-r from-green-600 to-green-800 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 w-full sm:w-auto"
+        >
+          {showMyStrategies ? "Show All Strategies" : "My Strategies"}
+        </button>
+        <button
           onClick={() => setShowModal(true)}
           className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2 w-full sm:w-auto justify-center"
         >
@@ -113,9 +140,14 @@ const Marketplace: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-        {strategies?.map((strategy) => (
+        {(showMyStrategies
+          ? strategies.filter(
+              (s) => s.author._id === localStorage.getItem("user_id")
+            )
+          : strategies
+        ).map((strategy) => (
           <div
-            key={strategy.id}
+            key={strategy._id}
             className="bg-gray-800 rounded-xl p-4 sm:p-6 shadow-xl border border-gray-700 hover:border-blue-500 transition-all duration-300 transform hover:scale-[1.02]"
           >
             <div className="flex flex-col sm:flex-row justify-between items-start gap-2 sm:items-center mb-3">
@@ -189,6 +221,14 @@ const Marketplace: React.FC = () => {
                 <span className="text-gray-500 text-xs">
                   {format(new Date(strategy.createdAt), "dd MMM yyyy")}
                 </span>
+                {strategy.author._id === localStorage.getItem("user_id") && (
+                  <button
+                    onClick={() => handleDelete(strategy._id)}
+                    className="bg-red-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-700 transition"
+                  >
+                    <Trash size={15} />
+                  </button>
+                )}
               </div>
             </div>
           </div>
