@@ -1,16 +1,22 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { format } from "date-fns";
-import { createStrategy, fetchStrategy } from "@/services/stockService";
+import {
+  createStrategy,
+  deleteStrategy,
+  fetchStrategy,
+  searchStockData,
+} from "@/services/stockService";
 import { toast } from "sonner";
-import { FiSearch, FiLoader } from "react-icons/fi";
-import { searchStockData } from "../services/stockService";
+import { FiSearch, FiLoader, FiTrash } from "react-icons/fi";
+
 interface Strategy {
-  id: string;
+  _id: string;
   title: string;
   description: string;
   author: {
     name: string;
+    _id: string;
   };
   stock_symbol: string;
   trade_type: string;
@@ -27,6 +33,7 @@ interface SearchResult {
 
 const Marketplace: React.FC = () => {
   const [strategies, setStrategies] = useState<Strategy[]>([]);
+  const [showMyStrategies, setShowMyStrategies] = useState(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -45,12 +52,12 @@ const Marketplace: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult>({});
   const [showResults, setShowResults] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
   const fetchStrategies = async () => {
+    setLoading(true);
     try {
       const response = await fetchStrategy();
       setStrategies(response.data);
@@ -67,7 +74,6 @@ const Marketplace: React.FC = () => {
 
   const handleAddStrategy = async () => {
     try {
-      console.log("formData", formData);
       const response = await createStrategy(formData);
       if (response.status === 201) {
         toast.success("Strategy added successfully.");
@@ -87,6 +93,21 @@ const Marketplace: React.FC = () => {
       }
     } catch (err) {
       setError("Failed to add strategy.");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this strategy?"
+    );
+    if (!confirmDelete) return;
+
+    try {
+      await deleteStrategy(id);
+      fetchStrategies();
+      toast.success("Strategy deleted successfully!");
+    } catch (error) {
+      toast.error("Failed to delete the strategy.");
     }
   };
 
@@ -121,34 +142,11 @@ const Marketplace: React.FC = () => {
   };
 
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      if (searchQuery.length >= 2) {
-        setIsSearching(true);
-        try {
-          const response = await searchStockData(searchQuery);
-          setSearchResults(response.data);
-          setShowResults(true);
-        } catch (error) {
-          console.error("Search error:", error);
-        } finally {
-          setIsSearching(false);
-        }
-      } else {
-        setSearchResults({});
-        setShowResults(false);
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         searchRef.current &&
         !searchRef.current.contains(event.target as Node)
       ) {
-        setShowResults(false);
         setShowDropdown(false);
       }
     };
@@ -172,19 +170,27 @@ const Marketplace: React.FC = () => {
         <h1 className="text-2xl sm:text-3xl font-bold text-white bg-gradient-to-r from-blue-500 to-purple-500 p-3 sm:p-4 rounded-lg shadow-lg w-full sm:w-auto">
           Trading Strategies Marketplace
         </h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2 w-full sm:w-auto justify-center"
-        >
-          <span className="text-xl">+</span> Add Strategy
-        </button>
+        <div className="flex flex-wrap gap-4">
+          <button
+            onClick={() => setShowMyStrategies((prev) => !prev)}
+            className="bg-gradient-to-r from-green-600 to-green-800 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 w-full sm:w-auto"
+          >
+            {showMyStrategies ? "Show All Strategies" : "My Strategies"}
+          </button>
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2 w-full sm:w-auto justify-center"
+          >
+            <span className="text-xl">+</span> Add Strategy
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
         {strategies?.map((strategy) => (
           <div
-            key={strategy.id}
-            className="transform sm:transform-none scale-90 sm:scale-100 bg-gray-800 rounded-xl p-3 sm:p-6 shadow-xl border border-gray-700 hover:border-blue-500 transition-all duration-300 hover:scale-95"
+            key={strategy._id}
+            className="bg-gray-800 rounded-xl p-4 sm:p-6 shadow-xl border border-gray-700 hover:border-blue-500 transition-all duration-300 transform hover:scale-[1.02]"
           >
             <div className="flex flex-col sm:flex-row justify-between items-start gap-2 sm:items-center mb-3">
               <h2 className="text-lg sm:text-xl font-semibold text-white">
@@ -257,6 +263,14 @@ const Marketplace: React.FC = () => {
                 <span className="text-gray-500 text-xs">
                   {format(new Date(strategy.createdAt), "dd MMM yyyy")}
                 </span>
+                {strategy.author._id === localStorage.getItem("user_id") && (
+                  <button
+                    onClick={() => handleDelete(strategy._id)}
+                    className="bg-red-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-700 transition"
+                  >
+                    <FiTrash size={15} />
+                  </button>
+                )}
               </div>
             </div>
           </div>

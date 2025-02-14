@@ -68,6 +68,16 @@ export const fetchStrategy = async () => {
   }
 };
 
+export const deleteStrategy = async (id: string) => {
+  try {
+    const response = await axios.delete(`${API_BASE_URL}/strategy/${id}`);
+    return response;
+  } catch (error) {
+    console.error("Error deleting strategy:", error);
+    throw error;
+  }
+};
+
 export const fetchOrders = async (user_id: string | null) => {
   try {
     const response = await axios.get(`${API_BASE_URL}/order/user/${user_id}`);
