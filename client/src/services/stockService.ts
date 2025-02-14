@@ -5,16 +5,15 @@ export const fetchStockData = async (path: string) => {
   try {
     const url = `${API_BASE_URL}/stocks/${path}`;
     const response = await axios.get(url);
-    
+
     if (!response.data) {
-      throw new Error('No data received from API');
+      throw new Error("No data received from API");
     }
-    
+
     return response;
   } catch (error: any) {
     console.error("Error fetching stock data:", {
       message: error.message,
-      url,
       response: error.response?.data,
     });
     throw error;
@@ -61,9 +60,17 @@ export const createStrategy = async (data: any) => {
 
 export const fetchStrategy = async () => {
   try {
-    const response = await axios.get(
-      `${API_BASE_URL}/strategy`
-    );
+    const response = await axios.get(`${API_BASE_URL}/strategy`);
+    return response;
+  } catch (error) {
+    console.error("Error fetching strategies:", error);
+    throw error;
+  }
+};
+
+export const fetchOrders = async (user_id: string | null) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/order/user/${user_id}`);
     return response;
   } catch (error) {
     console.error("Error fetching strategies:", error);

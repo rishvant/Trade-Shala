@@ -3,18 +3,18 @@ import axios from "axios";
 import { TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 import CurrentPositions from "./CurrentPositions";
+import { fetchOrders } from "@/services/stockService";
 
 const HeroSection = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchData = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:3000/api/order/user/679e816d833b883f64035b04"
-        );
-        setOrders(response.data.data);
+        const user_id = localStorage.getItem("user_id");
+        const response = await fetchOrders(user_id);
+        setOrders(response.data?.data);
       } catch (error) {
         console.error("Error fetching orders:", error);
       } finally {
@@ -22,7 +22,7 @@ const HeroSection = () => {
       }
     };
 
-    fetchOrders();
+    fetchData();
   }, []);
 
   return (

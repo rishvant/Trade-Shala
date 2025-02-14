@@ -54,6 +54,7 @@ const Marketplace: React.FC = () => {
 
   const handleAddStrategy = async () => {
     try {
+      console.log("formData", formData);
       const response = await createStrategy(formData);
       if (response.status === 201) {
         toast.success("Strategy added successfully.");
