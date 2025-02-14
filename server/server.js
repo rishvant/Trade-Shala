@@ -12,6 +12,7 @@ import stockRoutes from "./routes/stockRoutes.js";
 import transactionRoutes from './routes/transactionRoutes.js'
 import portfolioRoutes from './routes/portfolioRoutes.js';
 import strategyRoutes from './routes/strategyRoutes.js';
+import https from "https";
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -47,3 +48,11 @@ await connectSocket(server);
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+setInterval(() => {
+  https.get(`https://trade-gpt.onrender.com`, (res) => {
+    console.log("Pinging server to keep alive");
+  }).on("error", (err) => {
+    console.error("Error pinging server: ", err.message);
+  });
+}, 10 * 60 * 1000);
