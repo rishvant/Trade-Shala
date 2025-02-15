@@ -11,10 +11,11 @@ import { searchStockData } from "../services/stockService";
 import { useNavigate } from "react-router-dom";
 import TopGainers from "../components/TopGainers";
 import { useTrade } from "../context/context";
+
 const Home = () => {
   const [activeTab, setActiveTab] = useState("indices");
   const [searchTerm, setSearchTerm] = useState("");
-  const { isLogin } = useTrade();
+  const isLogin = localStorage.getItem("token") ? true : false;
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -232,56 +233,60 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-[#131722] text-white">
       {/* Hero Section */}
-      {!isLogin && (<motion.div>
-        <GlitterEffect />
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="relative pt-20 pb-16 px-4 sm:px-6 lg:px-8 text-center"
-        >
-          <motion.h1
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent"
+      {!isLogin && (
+        <motion.div>
+          <GlitterEffect />
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="relative pt-20 pb-16 px-4 sm:px-6 lg:px-8 text-center"
           >
-            Welcome to Trade-GPT
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="text-xl text-gray-400 max-w-2xl mx-auto mb-8"
+            <motion.h1
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent"
+            >
+              Welcome to Trade-GPT
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="text-xl text-gray-400 max-w-2xl mx-auto mb-8"
+            >
+              Your intelligent trading companion for the modern financial
+              markets
+            </motion.p>
+          </motion.div>
+
+          {/* Features Grid with lower z-index */}
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 z-0"
           >
-            Your intelligent trading companion for the modern financial markets
-          </motion.p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {features.map((feature, index) => (
+                <motion.div
+                  key={index}
+                  variants={itemVariants}
+                  whileHover={{ scale: 1.05 }}
+                  className="bg-[#1E222D] p-6 rounded-xl border border-green-500/20 hover:border-green-500/40 transition-colors duration-300"
+                >
+                  <div className="text-green-500 mb-4">{feature.icon}</div>
+                  <h3 className="text-xl font-semibold mb-2">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-400">{feature.description}</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
         </motion.div>
-
-        {/* Features Grid with lower z-index */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 z-0"
-
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <motion.div
-                key={index}
-                variants={itemVariants}
-                whileHover={{ scale: 1.05 }}
-                className="bg-[#1E222D] p-6 rounded-xl border border-green-500/20 hover:border-green-500/40 transition-colors duration-300"
-              >
-                <div className="text-green-500 mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-gray-400">{feature.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </motion.div>)}
+      )}
       {/* Stats Section */}
       {/* <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -310,24 +315,25 @@ const Home = () => {
       </motion.div> */}
 
       {/* CTA Section */}
-      {!isLogin && (<motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.8 }}
-        className="text-center py-16 px-4"
-
-      >
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="bg-green-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors duration-300"
+      {!isLogin && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+          className="text-center py-16 px-4"
         >
-          Start Trading Now
-        </motion.button>
-      </motion.div>)}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="bg-green-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors duration-300"
+          >
+            Start Trading Now
+          </motion.button>
+        </motion.div>
+      )}
 
       <div className="bg-gradient-to-br from-gray-900 to-black min-h-screen">
-        {isLogin && (<HeroSection />)}
+        {isLogin && <HeroSection />}
         {/* ye ab aaya mere paas indices vaa section */}
         <div className="container mx-auto px-4 py-8">
           <div className="flex justify-center mb-8">

@@ -41,7 +41,7 @@ const CurrentPositions: React.FC<CurrentPositionsProps> = ({
       console.log(status);
     });
 
-    positions.forEach((position) => {
+    positions?.forEach((position) => {
       socket.emit("selectSymbol", position.stock_symbol);
     });
 
@@ -98,7 +98,7 @@ const CurrentPositions: React.FC<CurrentPositionsProps> = ({
     }
   };
 
-  const totalPnL = positions.reduce((acc, position) => {
+  const totalPnL = positions?.reduce((acc, position) => {
     const currentPrice =
       updatedPrices[position.stock_symbol] || position.current_price;
     const pnl =
@@ -112,7 +112,7 @@ const CurrentPositions: React.FC<CurrentPositionsProps> = ({
     <div className="bg-[#1E222D] rounded-lg shadow-lg border border-gray-800 p-6">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-xl font-bold text-white">Current Positions</h3>
-        {positions.length > 0 && (
+        {positions?.length > 0 && (
           <span
             className={`text-sm font-semibold ${
               totalPnL >= 0 ? "text-green-400" : "text-red-400"
@@ -124,8 +124,8 @@ const CurrentPositions: React.FC<CurrentPositionsProps> = ({
       </div>
 
       <div className="space-y-4">
-        {positions.length > 0 ? (
-          positions.map((position) => {
+        {positions?.length > 0 ? (
+          positions?.map((position) => {
             const currentPrice =
               updatedPrices[position.stock_symbol] || position.current_price;
             const pnl =
