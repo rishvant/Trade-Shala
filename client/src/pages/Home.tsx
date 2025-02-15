@@ -248,7 +248,7 @@ const Home = () => {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent"
             >
-              Welcome to Trade-GPT
+              Welcome to Trade-Shala
             </motion.h1>
             <motion.p
               initial={{ opacity: 0 }}
