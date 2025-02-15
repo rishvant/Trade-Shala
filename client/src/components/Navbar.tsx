@@ -125,7 +125,7 @@ const Navbar = () => {
         {/* Logo */}
         <div className="flex items-center space-x-8">
           <Link to="/" className="text-white text-2xl font-bold tracking-wider">
-            TradeGPT
+            <span className="font-ananda-namaste text-4xl">Trade-Shala</span>
           </Link>
         </div>
 
