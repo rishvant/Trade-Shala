@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { FaNewspaper, FaExternalLinkAlt, FaSearch } from "react-icons/fa";
+import {
+  FaNewspaper,
+  FaExternalLinkAlt,
+  FaSearch,
+  FaTimes,
+} from "react-icons/fa";
 import { Client } from "@gradio/client";
 
 interface NewsItem {
@@ -163,8 +168,15 @@ const News = () => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="mt-4 p-4 bg-[#1E222D] rounded-lg"
+              className="mt-4 p-4 bg-[#1E222D] rounded-lg relative"
             >
+              <button
+                onClick={() => setSentiment(null)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+              >
+                <FaTimes className="text-xl" />
+              </button>
+
               <div className="text-xl font-bold text-white mb-4">
                 Signal:{" "}
                 <span

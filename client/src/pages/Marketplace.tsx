@@ -25,6 +25,7 @@ interface Strategy {
   sl: number;
   price: number;
   createdAt: string;
+  strategy_id: string;
 }
 
 interface SearchResult {
@@ -55,6 +56,13 @@ const Marketplace: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  const [showTesterModal, setShowTesterModal] = useState(false);
+  const [testerFormData, setTesterFormData] = useState({
+    strategy: "",
+    numberOfTrades: "",
+  });
+  const [isTesting, setIsTesting] = useState(false);
 
   const fetchStrategies = async () => {
     setLoading(true);
@@ -155,6 +163,15 @@ const Marketplace: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleStrategyTest = async () => {
+    setIsTesting(true);
+    setTimeout(() => {
+      setIsTesting(false);
+      setShowTesterModal(false);
+      toast.error("Market is currently off");
+    }, 2000);
+  };
+
   if (loading)
     return (
       <div className="flex justify-center items-center h-screen">
@@ -178,6 +195,12 @@ const Marketplace: React.FC = () => {
             {showMyStrategies ? "Show All Strategies" : "My Strategies"}
           </button>
           <button
+            onClick={() => setShowTesterModal(true)}
+            className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 w-full sm:w-auto"
+          >
+            Strategy Tester
+          </button>
+          <button
             onClick={() => setShowModal(true)}
             className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2 w-full sm:w-auto justify-center"
           >
@@ -187,11 +210,17 @@ const Marketplace: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-        {strategies?.map((strategy) => (
+        {strategies?.map((strategy, index) => (
           <div
             key={strategy._id}
             className="bg-gray-800 rounded-xl p-4 sm:p-6 shadow-xl border border-gray-700 hover:border-blue-500 transition-all duration-300 transform hover:scale-[1.02]"
           >
+            <div className="mb-4">
+              <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-lg text-sm font-medium border border-blue-500/20">
+                S{(index + 1).toString().padStart(2, '0')}
+              </span>
+            </div>
+
             <div className="flex flex-col sm:flex-row justify-between items-start gap-2 sm:items-center mb-3">
               <h2 className="text-lg sm:text-xl font-semibold text-white">
                 {strategy.title}
@@ -455,6 +484,88 @@ const Marketplace: React.FC = () => {
                   className="w-full sm:w-auto px-4 py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 text-sm text-white rounded-lg hover:opacity-90 transition-opacity"
                 >
                   Add Strategy
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showTesterModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex justify-center items-center z-50 p-3 sm:p-4">
+          <div className="bg-gray-800/95 p-4 sm:p-6 rounded-xl shadow-2xl w-full max-w-sm border border-gray-700">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg sm:text-xl font-bold text-white">
+                Strategy Tester
+              </h2>
+              <button
+                onClick={() => setShowTesterModal(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-gray-300 text-xs mb-1">
+                  Select Strategy
+                </label>
+                <select
+                  value={testerFormData.strategy}
+                  onChange={(e) =>
+                    setTesterFormData((prev) => ({
+                      ...prev,
+                      strategy: e.target.value,
+                    }))
+                  }
+                  className="w-full p-2 bg-gray-700/50 text-white rounded-lg focus:ring-1 focus:ring-blue-500 border-none text-sm"
+                >
+                  <option value="">Select a strategy</option>
+                  <option value="S01">S01</option>
+                  <option value="S02">S02</option>
+                  <option value="S03">S03</option>
+                </select>
+              </div>
+
+              {testerFormData.strategy && (
+                <div>
+                  <label className="block text-gray-300 text-xs mb-1">
+                    Number of Trades
+                  </label>
+                  <input
+                    type="number"
+                    value={testerFormData.numberOfTrades}
+                    onChange={(e) =>
+                      setTesterFormData((prev) => ({
+                        ...prev,
+                        numberOfTrades: e.target.value,
+                      }))
+                    }
+                    placeholder="Enter number of trades"
+                    className="w-full p-2 bg-gray-700/50 text-white rounded-lg focus:ring-1 focus:ring-blue-500 border-none text-sm"
+                  />
+                </div>
+              )}
+
+              <div className="flex justify-end mt-6">
+                <button
+                  onClick={handleStrategyTest}
+                  disabled={
+                    isTesting ||
+                    !testerFormData.strategy ||
+                    !testerFormData.numberOfTrades
+                  }
+                  className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isTesting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                      Testing...
+                    </>
+                  ) : (
+                    "Execute"
+                  )}
                 </button>
               </div>
             </div>
