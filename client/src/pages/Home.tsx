@@ -56,8 +56,8 @@ const Home = () => {
         </div>
       ),
       symbol: "BANKNIFTY",
-      value: "46,500",
-      change: 0.3,
+      value: "49,099.45",
+      change: -0.53,
     },
     {
       icon: (
@@ -66,8 +66,8 @@ const Home = () => {
         </div>
       ),
       symbol: "NIFTY50",
-      value: "21,000",
-      change: -0.2,
+      value: "22,929.25",
+      change: -0.45,
     },
     {
       icon: (
@@ -76,8 +76,8 @@ const Home = () => {
         </div>
       ),
       symbol: "SENSEX",
-      value: "70,150",
-      change: 0.5,
+      value: "75,939.21",
+      change: -0.26,
     },
     {
       icon: (
@@ -85,9 +85,9 @@ const Home = () => {
           D
         </div>
       ),
-      symbol: "DOWJONES",
-      value: "38,200",
-      change: -0.1,
+      symbol: "FINIFTY",
+      value: "23,186.90",
+      change: -0.37,
     },
     {
       icon: (
@@ -95,9 +95,9 @@ const Home = () => {
           N
         </div>
       ),
-      symbol: "NASDAQ",
-      value: "15,400",
-      change: 0.7,
+      symbol: "NIFTY MIDCAP",
+      value: "11,090.05",
+      change: -2.38,
     },
   ];
 
