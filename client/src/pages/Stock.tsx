@@ -15,6 +15,7 @@ import dayjs from "dayjs";
 import Modal from "react-modal";
 import { toast } from "sonner";
 import { TechnicalAnalysis } from "react-ts-tradingview-widgets";
+import { SOCKET_BASE_URL } from "@/services/API";
 
 // Add interface for historical data parameters
 interface HistoricalDataParams {
@@ -86,7 +87,7 @@ interface Position {
   type: "INTRADAY" | "DELIVERY";
 }
 
-const socket = io("http://localhost:3000");
+const socket = io(SOCKET_BASE_URL);
 
 function Stock() {
   const { stockName } = useParams<{ stockName: any }>();
@@ -150,7 +151,7 @@ function Stock() {
 
   // Establish a WebSocket connection to listen to stock price updates
   useEffect(() => {
-    const socket = io("http://localhost:3000"); // WebSocket connection
+    const socket = io(SOCKET_BASE_URL); // WebSocket connection
 
     // Handle market status updates
     socket.on("marketStatusChange", (status: string) => {

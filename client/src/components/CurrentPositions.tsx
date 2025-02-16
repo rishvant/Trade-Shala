@@ -3,6 +3,7 @@ import { TrendingUp, TrendingDown, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { io } from "socket.io-client";
 import dayjs from "dayjs";
+import { SOCKET_BASE_URL } from "@/services/API";
 
 interface Position {
   _id: string;
@@ -34,7 +35,7 @@ const CurrentPositions: React.FC<CurrentPositionsProps> = ({
   );
 
   useEffect(() => {
-    const socket = io("http://localhost:3000"); // WebSocket connection
+    const socket = io(SOCKET_BASE_URL); // WebSocket connection
 
     // Handle market status updates
     socket.on("marketStatusChange", (status: string) => {

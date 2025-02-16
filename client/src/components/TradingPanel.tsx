@@ -3,8 +3,9 @@ import { TrendingUp, TrendingDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTrade } from "../context/context";
 import { io } from "socket.io-client";
+import { SOCKET_BASE_URL } from "@/services/API";
 
-const socket = io("http://localhost:3000");
+const socket = io(SOCKET_BASE_URL);
 
 interface TradingPanelProps {
   currentPrice: number;
