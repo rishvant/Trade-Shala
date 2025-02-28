@@ -65,8 +65,8 @@ function LoginByPhone() {
     try {
       await account.createOAuth2Session(
         OAuthProvider.Google, // Use enum instead of string
-        "http://localhost:5173/", // Success Redirect URI
-        "http://localhost:5173/fail" // Failure Redirect URI
+        "https://trade-shala.vercel.app", // Success Redirect URI
+        "https://trade-shala.vercel.app" // Failure Redirect URI
       );
     } catch (error) {
       console.error("Google Sign-In Error:", error);
