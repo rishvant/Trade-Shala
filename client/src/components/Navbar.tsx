@@ -1,10 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useTrade } from "../context/context";
 import { IoWalletSharp } from "react-icons/io5";
 import { CgProfile } from "react-icons/cg";
 import { useState, useEffect, useRef } from "react";
 import { Search, X } from "lucide-react";
-import axios from "axios";
 import { searchStockData } from "../services/stockService";
 import { toast } from "sonner";
 
@@ -149,12 +147,12 @@ const Navbar = () => {
           >
             News
           </Link>
-          <Link
+          {/* <Link
             to="/contact"
             className="text-gray-300 hover:text-white transition-colors duration-300"
           >
             Contact Us
-          </Link>
+          </Link> */}
         </div>
 
         {/* Search Bar */}

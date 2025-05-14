@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import Home from "./pages/Home";
 import Navbar from "./components/Navbar";
-import ContactUs from "./pages/ContectUs";
+// import ContactUs from "./pages/ContectUs";
 import News from "./pages/News";
 import WalletPage from "./pages/Wallet";
 import Stock from "./pages/Stock";
@@ -29,7 +29,7 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/login/phone" element={<LoginByPhone />} />
           <Route path="/login/email" element={<LoginByEmail />} />
-          <Route path="/contact" element={<ContactUs />} />
+          {/* <Route path="/contact" element={<ContactUs />} /> */}
           <Route
             path="/wallet"
             element={

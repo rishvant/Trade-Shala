@@ -10,7 +10,6 @@ import { FaChartLine, FaNewspaper, FaWallet, FaLock } from "react-icons/fa";
 import { searchStockData } from "../services/stockService";
 import { useNavigate } from "react-router-dom";
 import TopGainers from "../components/TopGainers";
-import { useTrade } from "../context/context";
 
 const Home = () => {
   const [activeTab, setActiveTab] = useState("indices");
@@ -315,22 +314,25 @@ const Home = () => {
       </motion.div> */}
 
       {/* CTA Section */}
-      {!isLogin && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-          className="text-center py-16 px-4"
-        >
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="bg-green-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors duration-300"
+      <div className="flex flex-col items-center justify-center">
+        {!isLogin && (
+          <motion.a
+            href="/signup"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            className="text-center py-16 px-4"
           >
-            Start Trading Now
-          </motion.button>
-        </motion.div>
-      )}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-green-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors duration-300"
+            >
+              Start Trading Now
+            </motion.button>
+          </motion.a>
+        )}
+      </div>
 
       <div className="bg-gradient-to-br from-gray-900 to-black min-h-screen">
         {isLogin && <HeroSection />}
