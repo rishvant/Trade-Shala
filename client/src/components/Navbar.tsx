@@ -44,7 +44,7 @@ const Navbar = () => {
     localStorage.removeItem("user_id");
     localStorage.removeItem("userData");
     toast.error("Logged out successfully!");
-    navigate("/login");
+    navigate("/login/email");
   };
 
   const toggleProfileMenu = () => {
@@ -322,7 +322,7 @@ const Navbar = () => {
                   : "bg-[#2962ff] text-white hover:bg-[#1c54d4]" // Login button style (blue)
               }`}
               onClick={isLogin ? handleLogout : undefined}
-              to="/login/phone"
+              to="/login/email"
             >
               Login
             </Link>

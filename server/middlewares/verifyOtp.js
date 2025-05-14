@@ -1,14 +1,17 @@
-import OTP from "../models/Otp.Model.js"; // OTP schema to store OTPs
+import OTP from "../models/Otp.Model.js";
 
 const verifyOTP = async (req, res, next) => {
-    const { phoneNumber, otp } = req.body;
+    const { email, otp } = req.body;
 
-    if (!phoneNumber || !otp) {
-        return res.status(400).json({ message: "Phone number and OTP are required" });
+    if ((!email) || !otp) {
+        return res.status(400).json({ message: "OTP and either phone number or email are required" });
     }
-    
+
     try {
-        const otpRecord = await OTP.findOne({ phoneNumber, otp });
+        // Build query based on provided identifier
+        const query = { email, otp };
+
+        const otpRecord = await OTP.findOne(query);
 
         if (!otpRecord) {
             return res.status(400).json({ message: "Invalid OTP" });
@@ -19,10 +22,12 @@ const verifyOTP = async (req, res, next) => {
             return res.status(400).json({ message: "OTP expired" });
         }
 
-        // OTP is valid, proceed
-        await OTP.deleteOne({ _id: otpRecord._id }); // Remove OTP after verification
+        // OTP is valid, delete it and proceed
+        await OTP.deleteOne({ _id: otpRecord._id });
+
         next();
     } catch (error) {
+        console.error("Error verifying OTP:", error);
         res.status(500).json({ message: "Internal Server Error" });
     }
 };

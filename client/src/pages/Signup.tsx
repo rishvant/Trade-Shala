@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import I1 from "../assets/loginn.jpeg";
 import { SignupForm } from "../types/types";
-import { generateOTP, signup } from "../services/authService";
+import { generateEmailOTP, generateOTP, signup } from "../services/authService";
 import { toast } from "sonner";
 
 function Signup() {
@@ -27,12 +27,12 @@ function Signup() {
   };
 
   const handleSendOTP = async () => {
-    if (phoneNumber.length !== 10) {
-      toast.error("Please enter a valid 10-digit phone number.");
-      return;
-    }
+    // if (phoneNumber.length !== 10) {
+    //   toast.error("Please enter a valid 10-digit phone number.");
+    //   return;
+    // }
     try {
-      await generateOTP({ phoneNumber: `+91${phoneNumber}` });
+      await generateEmailOTP({ email: form.email });
 
       setShowOTP(true);
       setIsResendDisabled(true);
@@ -65,7 +65,7 @@ function Signup() {
       console.log(response);
       if (response.status === 201) {
         toast.success("Signup successful!");
-        navigate("/");
+        navigate("/login/email");
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Login failed.");

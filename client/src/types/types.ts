@@ -21,6 +21,10 @@ export interface GenerateOTPData {
   phoneNumber: string;
 }
 
+export interface GenerateEmailOTPData {
+  email: string;
+}
+
 export interface LoginByEmailForm {
   email: string;
   password: string;
