@@ -336,8 +336,7 @@ const Home = () => {
 
       <div className="bg-gradient-to-br from-gray-900 to-black min-h-screen">
         {isLogin && <HeroSection />}
-        {/* ye ab aaya mere paas indices vaa section */}
-        <div className="container mx-auto px-4 py-8">
+        {/* <div className="container mx-auto px-4 py-8">
           <div className="flex justify-center mb-8">
             <div className="flex bg-gray-800 rounded-full p-1">
               {tabs.map((tab) => (
@@ -383,16 +382,15 @@ const Home = () => {
               <p>Abhi kuch nahi hai</p>
             </div>
           )}
-        </div>
+        </div> */}
 
-        {/* Market Movers Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.8 }}
           className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
         >
-          <TopGainers></TopGainers>
+          <TopGainers />
         </motion.div>
       </div>
     </div>

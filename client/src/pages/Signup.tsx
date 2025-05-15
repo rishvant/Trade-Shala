@@ -212,7 +212,7 @@ function Signup() {
           <p className="text-center mt-6 text-gray-600">
             Already have an account?{" "}
             <Link
-              to="/login/phone"
+              to="/login/email"
               className="text-blue-500 hover:text-blue-600"
             >
               Login
