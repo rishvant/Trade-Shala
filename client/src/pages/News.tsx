@@ -25,7 +25,6 @@ interface Sentiment {
   newsCount: number;
 }
 
-// Add interface for news data
 interface NewsData {
   data: {
     headers: string[];
@@ -34,10 +33,28 @@ interface NewsData {
   }[];
 }
 
-// Add type for the prediction result
 interface PredictionResult {
   data: string[];
 }
+
+// Helper to parse "x hours/minutes ago" into a timestamp
+const parseTimeAgo = (text: string): number => {
+  const now = new Date();
+  const match = text.match(/(\d+)\s*(second|minute|hour|day)s?\s*ago/i);
+  if (!match) return 0;
+
+  const value = parseInt(match[1]);
+  const unit = match[2].toLowerCase();
+
+  const unitToMillis: Record<string, number> = {
+    second: 1000,
+    minute: 60 * 1000,
+    hour: 60 * 60 * 1000,
+    day: 24 * 60 * 60 * 1000,
+  };
+
+  return now.getTime() - value * unitToMillis[unit];
+};
 
 const News = () => {
   const [news, setNews] = useState<NewsItem[]>([]);
@@ -54,10 +71,7 @@ const News = () => {
         const response = await fetch(
           "https://finnhub.io/api/v1/news?category=general&token=cufk499r01qno7m5ve60cufk499r01qno7m5ve6g"
         );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch news");
-        }
+        if (!response.ok) throw new Error("Failed to fetch news");
 
         const data = await response.json();
         setNews(data);
@@ -80,13 +94,19 @@ const News = () => {
 
       const result = (await client.predict("/analyze_asset_sentiment", [
         symbol,
-      ])) as NewsData; // Type assertion for result
+      ])) as NewsData;
 
-      // Parse the response data
       const newsData = result.data[0].data;
 
-      // Count sentiments for signal
-      const sentiments = newsData.map((item: string[]) =>
+      // Sort latest first based on "x hours ago" etc.
+      const sortedNewsData = newsData.sort((a, b) => {
+        const timeA = parseTimeAgo(a[3]);
+        const timeB = parseTimeAgo(b[3]);
+        return timeB - timeA;
+      });
+
+      // Count signal
+      const sentiments = sortedNewsData.map((item: string[]) =>
         item[0].toLowerCase()
       );
       const positiveCount = sentiments.filter((s) =>
@@ -103,10 +123,13 @@ const News = () => {
           ? "SELL"
           : "NEUTRAL";
 
+      console.log("Signal:", signal);
+      console.log("News Data:", sortedNewsData);
+
       setSentiment({
         signal,
-        analysis: newsData,
-        newsCount: newsData.length,
+        analysis: sortedNewsData,
+        newsCount: sortedNewsData.length,
       });
     } catch (err: any) {
       console.error("Error analyzing:", err);
@@ -118,7 +141,6 @@ const News = () => {
     }
   };
 
-  // Helper function to get sentiment color
   const getSentimentColor = (sentiment: string) => {
     if (sentiment.includes("positive")) return "bg-green-500";
     if (sentiment.includes("negative")) return "bg-red-500";
@@ -250,7 +272,6 @@ const News = () => {
           )}
         </motion.div>
 
-        {/* Error Message */}
         {error && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -261,7 +282,6 @@ const News = () => {
           </motion.div>
         )}
 
-        {/* News Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {news.map((item, index) => (
             <motion.div
@@ -298,7 +318,6 @@ const News = () => {
           ))}
         </div>
 
-        {/* Loading State */}
         {loading && !error && (
           <motion.div
             initial={{ opacity: 0 }}

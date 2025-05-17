@@ -21,7 +21,7 @@ app.use(express.json());
 app.use(cors());
 app.use("/api/stocks", stocksRoutes);
 app.use("/api", orderRoutes);
-app.use("/api/v1", authRoutes);
+
 
 app.get("/", (req, res) => {
   res.send(`<h1>this is server</h1>`);
@@ -43,7 +43,6 @@ app.use("/api", strategyRoutes);
 const server = http.createServer(app);
 
 await connectSocket(server);
-
 
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
