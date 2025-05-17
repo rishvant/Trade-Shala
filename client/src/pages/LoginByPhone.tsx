@@ -63,10 +63,13 @@ function LoginByPhone() {
 
   const handleGoogleSignIn = async () => {
     try {
+      let redirect_url = import.meta.env.VITE_API_BASE_URL;
+      let failure_url = redirect_url + "/login/email";
+
       await account.createOAuth2Session(
-        OAuthProvider.Google, // Use enum instead of string
-        "https://trade-shala.vercel.app/", // Success Redirect URI
-        "https://trade-shala.vercel.app/login/phone" // Failure Redirect URI
+        OAuthProvider.Google,
+        redirect_url,
+        failure_url
       );
     } catch (error) {
       console.error("Google Sign-In Error:", error);
