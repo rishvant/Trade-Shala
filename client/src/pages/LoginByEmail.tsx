@@ -104,7 +104,7 @@ function LoginByEmail() {
             </button>
           </form>
 
-          <div className="mt-6">
+          {/* <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300"></div>
@@ -132,7 +132,7 @@ function LoginByEmail() {
                 Login with Phone Number
               </Link>
             </div>
-          </div>
+          </div> */}
 
           <p className="text-center mt-6 text-gray-600">
             Don't have an account?{" "}
