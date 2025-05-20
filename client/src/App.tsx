@@ -20,6 +20,8 @@ import ProtectedRoute from "./components/Protected";
 // import TradingWidgets from "./components/TradingWidgets";
 
 function App() {
+  let geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
   return (
     <TradeProvider>
       <Router>
@@ -80,7 +82,7 @@ function App() {
             }
           />
         </Routes>
-        <GeminiChatbot apiKey="AIzaSyBvX1pXSK0h3ZANvyzeyNsje9FHSHFXp2U" />
+        <GeminiChatbot apiKey={geminiApiKey} />
         <Footer />
       </Router>
       {/* <TradingWidgets></TradingWidgets> */}
