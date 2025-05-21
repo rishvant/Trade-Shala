@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import I1 from "../assets/loginn.jpeg";
-import { FaGoogle } from "react-icons/fa";
 import { LoginByEmailForm } from "../types/types";
 import { loginByEmail } from "../services/authService";
 import { toast } from "sonner";
@@ -43,9 +42,9 @@ function LoginByEmail() {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    console.log("Google Sign In clicked");
-  };
+  // const handleGoogleSignIn = () => {
+  //   console.log("Google Sign In clicked");
+  // };
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center z-50">
