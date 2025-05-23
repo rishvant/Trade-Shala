@@ -1,109 +1,109 @@
-import { useState } from "react";
-import { ChartLineIcon, StarIcon, Search } from "lucide-react";
+// import { useState } from "react";
+// import { ChartLineIcon, StarIcon, Search } from "lucide-react";
 import HeroSection from "../components/HeroSection";
-import Slider from "react-slick";
+// import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import Card from "../components/Card";
+// import Card from "../components/Card";
 import { motion } from "framer-motion";
 import { FaChartLine, FaNewspaper, FaWallet, FaLock } from "react-icons/fa";
-import { searchStockData } from "../services/stockService";
-import { useNavigate } from "react-router-dom";
+// import { searchStockData } from "../services/stockService";
+// import { useNavigate } from "react-router-dom";
 import TopGainers from "../components/TopGainers";
 
 const Home = () => {
-  const [activeTab, setActiveTab] = useState("indices");
-  const [searchTerm, setSearchTerm] = useState("");
+  // const [activeTab, setActiveTab] = useState("indices");
+  // const [searchTerm, setSearchTerm] = useState("");
   const isLogin = localStorage.getItem("token") ? true : false;
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+  // const [searchResults, setSearchResults] = useState<any[]>([]);
+  // const [isLoading, setIsLoading] = useState(false);
+  // const navigate = useNavigate();
 
-  const settings = {
-    dots: false,
-    infinite: true,
-    slidesToShow: 4,
-    slidesToScroll: 1,
-    autoplay: false,
-    speed: 2000,
-    autoplaySpeed: 1000,
-    cssEase: "linear",
-    pauseOnHover: false,
-    responsive: [
-      {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
-        },
-      },
-      {
-        breakpoint: 600,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
-        },
-      },
-    ],
-  };
+  // const settings = {
+  //   dots: false,
+  //   infinite: true,
+  //   slidesToShow: 4,
+  //   slidesToScroll: 1,
+  //   autoplay: false,
+  //   speed: 2000,
+  //   autoplaySpeed: 1000,
+  //   cssEase: "linear",
+  //   pauseOnHover: false,
+  //   responsive: [
+  //     {
+  //       breakpoint: 1024,
+  //       settings: {
+  //         slidesToShow: 2,
+  //         slidesToScroll: 1,
+  //       },
+  //     },
+  //     {
+  //       breakpoint: 600,
+  //       settings: {
+  //         slidesToShow: 2,
+  //         slidesToScroll: 1,
+  //       },
+  //     },
+  //   ],
+  // };
 
-  const cardData = [
-    {
-      icon: (
-        <div className="w-8 h-8 rounded-full bg-[#2962ff] flex items-center justify-center text-white">
-          B
-        </div>
-      ),
-      symbol: "BANKNIFTY",
-      value: "49,099.45",
-      change: -0.53,
-    },
-    {
-      icon: (
-        <div className="w-8 h-8 rounded-full bg-[#ff5722] flex items-center justify-center text-white">
-          N
-        </div>
-      ),
-      symbol: "NIFTY50",
-      value: "22,929.25",
-      change: -0.45,
-    },
-    {
-      icon: (
-        <div className="w-8 h-8 rounded-full bg-[#4caf50] flex items-center justify-center text-white">
-          S
-        </div>
-      ),
-      symbol: "SENSEX",
-      value: "75,939.21",
-      change: -0.26,
-    },
-    {
-      icon: (
-        <div className="w-8 h-8 rounded-full bg-[#9c27b0] flex items-center justify-center text-white">
-          D
-        </div>
-      ),
-      symbol: "FINIFTY",
-      value: "23,186.90",
-      change: -0.37,
-    },
-    {
-      icon: (
-        <div className="w-8 h-8 rounded-full bg-[#ffeb3b] flex items-center justify-center text-black">
-          N
-        </div>
-      ),
-      symbol: "NIFTY MIDCAP",
-      value: "11,090.05",
-      change: -2.38,
-    },
-  ];
+  // const cardData = [
+  //   {
+  //     icon: (
+  //       <div className="w-8 h-8 rounded-full bg-[#2962ff] flex items-center justify-center text-white">
+  //         B
+  //       </div>
+  //     ),
+  //     symbol: "BANKNIFTY",
+  //     value: "49,099.45",
+  //     change: -0.53,
+  //   },
+  //   {
+  //     icon: (
+  //       <div className="w-8 h-8 rounded-full bg-[#ff5722] flex items-center justify-center text-white">
+  //         N
+  //       </div>
+  //     ),
+  //     symbol: "NIFTY50",
+  //     value: "22,929.25",
+  //     change: -0.45,
+  //   },
+  //   {
+  //     icon: (
+  //       <div className="w-8 h-8 rounded-full bg-[#4caf50] flex items-center justify-center text-white">
+  //         S
+  //       </div>
+  //     ),
+  //     symbol: "SENSEX",
+  //     value: "75,939.21",
+  //     change: -0.26,
+  //   },
+  //   {
+  //     icon: (
+  //       <div className="w-8 h-8 rounded-full bg-[#9c27b0] flex items-center justify-center text-white">
+  //         D
+  //       </div>
+  //     ),
+  //     symbol: "FINIFTY",
+  //     value: "23,186.90",
+  //     change: -0.37,
+  //   },
+  //   {
+  //     icon: (
+  //       <div className="w-8 h-8 rounded-full bg-[#ffeb3b] flex items-center justify-center text-black">
+  //         N
+  //       </div>
+  //     ),
+  //     symbol: "NIFTY MIDCAP",
+  //     value: "11,090.05",
+  //     change: -2.38,
+  //   },
+  // ];
 
-  const tabs = [
-    { id: "indices", label: "Indices", icon: <ChartLineIcon /> },
-    { id: "watchlist", label: "Watchlist", icon: <StarIcon /> },
-  ];
+  // const tabs = [
+  //   { id: "indices", label: "Indices", icon: <ChartLineIcon /> },
+  //   { id: "watchlist", label: "Watchlist", icon: <StarIcon /> },
+  // ];
 
   const features = [
     {
@@ -198,36 +198,36 @@ const Home = () => {
     );
   };
 
-  const handleSearch = async (value: string) => {
-    setSearchTerm(value);
+  // const handleSearch = async (value: string) => {
+  //   setSearchTerm(value);
 
-    if (value.length < 2) {
-      setSearchResults([]);
-      return;
-    }
+  //   if (value.length < 2) {
+  //     setSearchResults([]);
+  //     return;
+  //   }
 
-    setIsLoading(true);
-    try {
-      const response = await searchStockData(value);
-      setSearchResults(
-        Object.entries(response.data).map(([symbol, name]) => ({
-          symbol,
-          name,
-        }))
-      );
-    } catch (error) {
-      console.error("Search error:", error);
-      setSearchResults([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //   setIsLoading(true);
+  //   try {
+  //     const response = await searchStockData(value);
+  //     setSearchResults(
+  //       Object.entries(response.data).map(([symbol, name]) => ({
+  //         symbol,
+  //         name,
+  //       }))
+  //     );
+  //   } catch (error) {
+  //     console.error("Search error:", error);
+  //     setSearchResults([]);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
-  const handleStockSelect = (symbol: string) => {
-    setSearchTerm("");
-    setSearchResults([]);
-    navigate(`/stock/${symbol}`);
-  };
+  // const handleStockSelect = (symbol: string) => {
+  //   setSearchTerm("");
+  //   setSearchResults([]);
+  //   navigate(`/stock/${symbol}`);
+  // };
 
   return (
     <div className="min-h-screen bg-[#131722] text-white">
