@@ -7,25 +7,32 @@ import {
   FaClock,
   FaCalendarAlt,
 } from "react-icons/fa";
-import { useTrade } from "../context/context";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { fetchOrders } from "@/services/stockService";
 
 const Profile = () => {
-  const { orders, balance, positions } = useTrade();
+  let user_id = localStorage.getItem("user_id");
+  const [orders, setOrders] = useState<any[]>([]);
   const [filterStatus, setFilterStatus] = useState<
-    "all" | "completed" | "pending" | "cancelled"
+    "all" | "completed" | "pending" | "cancelled" | "executed"
   >("all");
-  console.log("Profile orders:", orders); // Debug log
 
-  // Calculate total investment and P&L
-  const totalInvestment = Array.from(positions.values()).reduce(
-    (total, position) => total + position.quantity * position.averagePrice,
-    0
-  );
+  useEffect(() => {
+    const getOrders = async () => {
+      if (!user_id) return;
+      try {
+        const response = await fetchOrders(user_id);
+        console.log(response);
+        setOrders(response.data.data || []);
+      } catch (error) {
+        console.error("Failed to fetch orders", error);
+      }
+    };
+    getOrders();
+  }, [user_id]);
 
-  // Filter orders based on status
   const filteredOrders = orders.filter((order) =>
-    filterStatus === "all" ? true : order.status === filterStatus
+    filterStatus === "all" ? true : order.order_status === filterStatus
   );
 
   return (
@@ -82,7 +89,7 @@ const Profile = () => {
                     <FaRupeeSign className="text-green-500 text-xl" />
                   </div>
                   <p className="text-2xl font-bold text-white">
-                    ₹{balance.toFixed(2)}
+                    {/* ₹{balance.toFixed(2)} */}
                   </p>
                   <p className="text-green-500 text-sm mt-2">
                     Available for trading
@@ -94,12 +101,12 @@ const Profile = () => {
                     <span className="text-gray-400">Total Investments</span>
                     <FaChartLine className="text-purple-500 text-xl" />
                   </div>
-                  <p className="text-2xl font-bold text-white">
+                  {/* <p className="text-2xl font-bold text-white">
                     ₹{totalInvestment.toFixed(2)}
                   </p>
                   <p className="text-purple-500 text-sm mt-2">
                     {positions.size} active positions
-                  </p>
+                  </p> */}
                 </div>
               </div>
             </div>
@@ -151,52 +158,60 @@ const Profile = () => {
                       <td className="py-4">
                         <span
                           className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            order.action === "buy"
+                            order.type === "buy"
                               ? "bg-green-500/20 text-green-500"
                               : "bg-red-500/20 text-red-500"
                           }`}
                         >
-                          {order.action.toUpperCase()}
+                          {order.type?.toUpperCase()}
                         </span>
                       </td>
                       <td className="py-4 text-white font-medium">
-                        {order.symbol}
+                        {order.stock_symbol}
                       </td>
                       <td className="py-4 text-gray-400">
-                        {new Date(order.timestamp).toLocaleString()}
+                        {new Date(order.createdAt).toLocaleString()}
                       </td>
                       <td className="py-4 text-right text-white">
                         {order.quantity}
                       </td>
                       <td className="py-4 text-right text-white">
-                        ₹{order.price.toFixed(2)}
+                        ₹{order.completion_price.toFixed(2)}
                       </td>
                       <td className="py-4 text-right text-white">
-                        ₹{order.total.toFixed(2)}
+                        ₹{order.completion_price * order.quantity.toFixed(2)}
                       </td>
                       <td className="py-4 text-right">
                         <span
                           className={
-                            order.pnl >= 0 ? "text-green-500" : "text-red-500"
+                            order.completion_price >= 0
+                              ? "text-green-500"
+                              : "text-red-500"
                           }
                         >
-                          ₹{order.pnl.toFixed(2)}
+                          ₹{order.completion_price.toFixed(2)}
                           <span className="text-sm ml-1">
-                            ({((order.pnl / order.total) * 100).toFixed(2)}%)
+                            (
+                            {(
+                              (order.completion_price /
+                                order.completion_price) *
+                              100
+                            ).toFixed(2)}
+                            %)
                           </span>
                         </span>
                       </td>
                       <td className="py-4">
                         <span
                           className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            order.status === "completed"
+                            order.order_status === "completed"
                               ? "bg-green-500/20 text-green-500"
-                              : order.status === "pending"
+                              : order.order_status === "pending"
                               ? "bg-yellow-500/20 text-yellow-500"
                               : "bg-red-500/20 text-red-500"
                           }`}
                         >
-                          {order.status.toUpperCase()}
+                          {order.order_status.toUpperCase()}
                         </span>
                       </td>
                     </tr>
