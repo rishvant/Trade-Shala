@@ -11,9 +11,11 @@ const userSchema = new mongoose.Schema({
         unique: true
     },
     password: {
-        type: String,
-        required: true
+    type: String,
+    required: function () {
+      return this.provider === 'email'; // Required only for email signups
     },
+  },
     phoneNumber: {
         type: String,
     },
@@ -24,6 +26,11 @@ const userSchema = new mongoose.Schema({
     virtualBalance: {
         type: Number,
         default: 0
+    },
+    provider: {
+        type: String,
+        enum: ['google',  'email'],
+        default: 'email'
     },
 },
     {

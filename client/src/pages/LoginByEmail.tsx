@@ -1,10 +1,18 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import I1 from "../assets/loginn.jpeg";
-import { FaGoogle } from "react-icons/fa";
+import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { LoginByEmailForm } from "../types/types";
 import { loginByEmail } from "../services/authService";
 import { toast } from "sonner";
+import {jwtDecode} from "jwt-decode";
+import { signInWithGoogle } from "../services/authService";
+
+
+type GoogleUser = {
+  email: string;
+  name: string;
+};
 
 function LoginByEmail() {
   const navigate = useNavigate();
@@ -43,9 +51,28 @@ function LoginByEmail() {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    console.log("Google Sign In clicked");
-  };
+  const handleGoogleLoginSuccess = async (credentialResponse: CredentialResponse) => {
+  try {
+    if (!credentialResponse.credential) {
+      throw new Error("No credential found");
+    }
+
+    const decoded = jwtDecode<GoogleUser>(credentialResponse.credential);
+    const { email, name } = decoded;
+
+    const response = await signInWithGoogle({ email, name });
+
+    if (response.status === 200 || response.status === 201) {
+      toast.success(response.data.message || "Login successful!");
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user_id", response.data.user?._id);
+      navigate("/");
+    }
+  } catch (error: any) {
+    toast.error(error.response?.data?.message || "Google login failed.");
+    console.error("Google login error:", error);
+  }
+};
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center z-50">
@@ -116,13 +143,16 @@ function LoginByEmail() {
               </div>
             </div>
 
-            <button
-              onClick={handleGoogleSignIn}
-              className="mt-4 w-full flex items-center justify-center gap-2 bg-white border border-gray-300 p-3 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <FaGoogle />
-              Sign in with Google
-            </button>
+            <div className="mt-4">
+  <GoogleLogin
+    onSuccess={handleGoogleLoginSuccess}
+    onError={() => toast.error("Google login failed")}
+    width="100%"
+    text="signin_with"
+    shape="rectangular"
+    theme="outline"
+  />
+</div>
 
             <div className="w-full flex items-center justify-center gap-2">
               <Link

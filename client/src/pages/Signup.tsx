@@ -4,6 +4,9 @@ import I1 from "../assets/loginn.jpeg";
 import { SignupForm } from "../types/types";
 import { generateEmailOTP, generateOTP, signup } from "../services/authService";
 import { toast } from "sonner";
+import { GoogleLogin } from '@react-oauth/google';
+import {jwtDecode} from "jwt-decode";
+import { loginWithGoogle } from "../services/authService";
 
 function Signup() {
   const [showOTP, setShowOTP] = useState(false);
@@ -71,6 +74,25 @@ function Signup() {
       toast.error(error.response?.data?.message || "Login failed.");
     }
   };
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+  try {
+    const decoded: any = jwtDecode(credentialResponse.credential);
+    const { email, name } = decoded;
+
+    const response = await loginWithGoogle({ email, name });
+
+    if (response.status === 200 || response.status === 201) {
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user_id", response.data.user?._id);
+      toast.success("Signed up with Google!");
+      navigate("/");
+    }
+  } catch (error: any) {
+    console.error("Google Sign Up error:", error);
+    toast.error("Google signup failed.");
+  }
+};
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -208,6 +230,10 @@ function Signup() {
               {showOTP ? "Login" : "Send OTP"}
             </button>
           </form>
+          <div className="mt-6 text-center">
+  <div className="mb-2 text-gray-500 text-sm">Or sign up with</div>
+  <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => toast.error("Google login failed")} />
+</div>
 
           <p className="text-center mt-6 text-gray-600">
             Already have an account?{" "}

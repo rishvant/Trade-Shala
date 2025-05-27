@@ -5,7 +5,7 @@ const PortfolioController = {
         try {
             const { userId } = req.params;
             const portfolios = await Portfolio.find({ user_id: userId }).populate('user_id');
-            console.log(portfolios);
+            console.log('req ans is ',portfolios);
             res.status(200).json(portfolios);
         } catch (error) {
             res.status(500).json({ message: 'Error fetching portfolios', error });

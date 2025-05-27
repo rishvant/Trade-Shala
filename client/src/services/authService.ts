@@ -8,6 +8,7 @@ import {
   SignupFormData,
 } from "../types/types";
 
+import { GoogleLoginPayload } from "../types/types"; 
 export const generateOTP = async (data: GenerateOTPData) => {
   try {
     const response = await axios.post(`${API_BASE_URL}/v1/generate_otp`, data);
@@ -28,6 +29,12 @@ export const generateEmailOTP = async (data: GenerateEmailOTPData) => {
   }
 };
 
+export const loginWithGoogle = (payload: GoogleLoginPayload) => {
+  return axios.post(`${API_BASE_URL}/v1/google-signup`, payload); // adjust endpoint if different
+};
+export const signInWithGoogle = async (data: { email: string; name: string }) => {
+  return axios.post(`${API_BASE_URL}/v1/google-login`, data);
+};
 export const loginByEmail = async (data: LoginByEmailForm) => {
   try {
     const response = await axios.post(`${API_BASE_URL}/v1/login/email`, data);

@@ -48,3 +48,10 @@ export interface SignupFormData {
   phoneNumber: string;
   otp: string;
 }
+
+
+export interface GoogleLoginPayload {
+  name: string;
+  email: string;
+  
+}
