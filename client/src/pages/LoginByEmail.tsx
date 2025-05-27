@@ -24,10 +24,10 @@ function LoginByEmail() {
     e.preventDefault();
     try {
       const response = await loginByEmail(form);
-      console.log(response);
       if (response.status === 200) {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user_id", response.data.user?._id);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
         toast.success(response.data.message || "Login successful!");
         navigate("/");
       }

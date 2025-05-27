@@ -48,3 +48,11 @@ export interface SignupFormData {
   phoneNumber: string;
   otp: string;
 }
+
+export interface User {
+  _id: string;
+  name: string;
+  email: string;
+  phoneNumber: string;
+  createdAt: string;
+}

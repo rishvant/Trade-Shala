@@ -9,9 +9,15 @@ import {
 } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { fetchOrders } from "@/services/stockService";
+import { User } from "@/types/types";
 
 const Profile = () => {
   let user_id = localStorage.getItem("user_id");
+  let user_data: User | null = null;
+  const storedUser = localStorage.getItem("user");
+  if (storedUser) {
+    user_data = JSON.parse(storedUser);
+  }
   const [orders, setOrders] = useState<any[]>([]);
   const [filterStatus, setFilterStatus] = useState<
     "all" | "completed" | "pending" | "cancelled" | "executed"
@@ -52,22 +58,27 @@ const Profile = () => {
               <div className="absolute bottom-0 right-0 w-6 h-6 bg-green-500 rounded-full border-4 border-[#1E222D]"></div>
             </div>
             <div className="text-center md:text-left flex-grow">
-              <h1 className="text-3xl font-bold text-white mb-2">John Doe</h1>
-              <p className="text-gray-400 mb-4">john.doe@example.com</p>
+              <h1 className="text-3xl font-bold text-white mb-2">
+                {user_data?.name}
+              </h1>
+              <p className="text-gray-400 mb-4">{user_data?.email}</p>
               <div className="flex flex-wrap gap-4 justify-center md:justify-start">
                 <div className="bg-[#262932] px-4 py-2 rounded-lg">
                   <div className="flex items-center gap-2">
                     <FaClock className="text-blue-400" />
                     <span className="text-gray-400">Member since</span>
                   </div>
-                  <p className="text-white font-semibold">March 2024</p>
-                </div>
-                <div className="bg-[#262932] px-4 py-2 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <FaCalendarAlt className="text-purple-400" />
-                    <span className="text-gray-400">Last Login</span>
-                  </div>
-                  <p className="text-white font-semibold">Today, 10:30 AM</p>
+                  <p className="text-white font-semibold">
+                    {user_data?.createdAt
+                      ? new Date(user_data.createdAt).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "long",
+                          }
+                        )
+                      : "N/A"}
+                  </p>
                 </div>
               </div>
             </div>
