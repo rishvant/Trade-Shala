@@ -7,25 +7,38 @@ import {
   FaClock,
   FaCalendarAlt,
 } from "react-icons/fa";
-import { useTrade } from "../context/context";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { fetchOrders } from "@/services/stockService";
+import { User } from "@/types/types";
 
 const Profile = () => {
-  const { orders, balance, positions } = useTrade();
+  let user_id = localStorage.getItem("user_id");
+  let user_data: User | null = null;
+  const storedUser = localStorage.getItem("user");
+  if (storedUser) {
+    user_data = JSON.parse(storedUser);
+  }
+  const [orders, setOrders] = useState<any[]>([]);
   const [filterStatus, setFilterStatus] = useState<
-    "all" | "completed" | "pending" | "cancelled"
+    "all" | "completed" | "pending" | "cancelled" | "executed"
   >("all");
-  console.log("Profile orders:", orders); // Debug log
 
-  // Calculate total investment and P&L
-  const totalInvestment = Array.from(positions.values()).reduce(
-    (total, position) => total + position.quantity * position.averagePrice,
-    0
-  );
+  useEffect(() => {
+    const getOrders = async () => {
+      if (!user_id) return;
+      try {
+        const response = await fetchOrders(user_id);
+        console.log(response);
+        setOrders(response.data.data || []);
+      } catch (error) {
+        console.error("Failed to fetch orders", error);
+      }
+    };
+    getOrders();
+  }, [user_id]);
 
-  // Filter orders based on status
   const filteredOrders = orders.filter((order) =>
-    filterStatus === "all" ? true : order.status === filterStatus
+    filterStatus === "all" ? true : order.order_status === filterStatus
   );
 
   return (
@@ -45,22 +58,27 @@ const Profile = () => {
               <div className="absolute bottom-0 right-0 w-6 h-6 bg-green-500 rounded-full border-4 border-[#1E222D]"></div>
             </div>
             <div className="text-center md:text-left flex-grow">
-              <h1 className="text-3xl font-bold text-white mb-2">John Doe</h1>
-              <p className="text-gray-400 mb-4">john.doe@example.com</p>
+              <h1 className="text-3xl font-bold text-white mb-2">
+                {user_data?.name}
+              </h1>
+              <p className="text-gray-400 mb-4">{user_data?.email}</p>
               <div className="flex flex-wrap gap-4 justify-center md:justify-start">
                 <div className="bg-[#262932] px-4 py-2 rounded-lg">
                   <div className="flex items-center gap-2">
                     <FaClock className="text-blue-400" />
                     <span className="text-gray-400">Member since</span>
                   </div>
-                  <p className="text-white font-semibold">March 2024</p>
-                </div>
-                <div className="bg-[#262932] px-4 py-2 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <FaCalendarAlt className="text-purple-400" />
-                    <span className="text-gray-400">Last Login</span>
-                  </div>
-                  <p className="text-white font-semibold">Today, 10:30 AM</p>
+                  <p className="text-white font-semibold">
+                    {user_data?.createdAt
+                      ? new Date(user_data.createdAt).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "long",
+                          }
+                        )
+                      : "N/A"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -82,7 +100,7 @@ const Profile = () => {
                     <FaRupeeSign className="text-green-500 text-xl" />
                   </div>
                   <p className="text-2xl font-bold text-white">
-                    ₹{balance.toFixed(2)}
+                    {/* ₹{balance.toFixed(2)} */}
                   </p>
                   <p className="text-green-500 text-sm mt-2">
                     Available for trading
@@ -94,12 +112,12 @@ const Profile = () => {
                     <span className="text-gray-400">Total Investments</span>
                     <FaChartLine className="text-purple-500 text-xl" />
                   </div>
-                  <p className="text-2xl font-bold text-white">
+                  {/* <p className="text-2xl font-bold text-white">
                     ₹{totalInvestment.toFixed(2)}
                   </p>
                   <p className="text-purple-500 text-sm mt-2">
                     {positions.size} active positions
-                  </p>
+                  </p> */}
                 </div>
               </div>
             </div>
@@ -151,52 +169,60 @@ const Profile = () => {
                       <td className="py-4">
                         <span
                           className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            order.action === "buy"
+                            order.type === "buy"
                               ? "bg-green-500/20 text-green-500"
                               : "bg-red-500/20 text-red-500"
                           }`}
                         >
-                          {order.action.toUpperCase()}
+                          {order.type?.toUpperCase()}
                         </span>
                       </td>
                       <td className="py-4 text-white font-medium">
-                        {order.symbol}
+                        {order.stock_symbol}
                       </td>
                       <td className="py-4 text-gray-400">
-                        {new Date(order.timestamp).toLocaleString()}
+                        {new Date(order.createdAt).toLocaleString()}
                       </td>
                       <td className="py-4 text-right text-white">
                         {order.quantity}
                       </td>
                       <td className="py-4 text-right text-white">
-                        ₹{order.price.toFixed(2)}
+                        ₹{order.completion_price.toFixed(2)}
                       </td>
                       <td className="py-4 text-right text-white">
-                        ₹{order.total.toFixed(2)}
+                        ₹{order.completion_price * order.quantity.toFixed(2)}
                       </td>
                       <td className="py-4 text-right">
                         <span
                           className={
-                            order.pnl >= 0 ? "text-green-500" : "text-red-500"
+                            order.completion_price >= 0
+                              ? "text-green-500"
+                              : "text-red-500"
                           }
                         >
-                          ₹{order.pnl.toFixed(2)}
+                          ₹{order.completion_price.toFixed(2)}
                           <span className="text-sm ml-1">
-                            ({((order.pnl / order.total) * 100).toFixed(2)}%)
+                            (
+                            {(
+                              (order.completion_price /
+                                order.completion_price) *
+                              100
+                            ).toFixed(2)}
+                            %)
                           </span>
                         </span>
                       </td>
                       <td className="py-4">
                         <span
                           className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            order.status === "completed"
+                            order.order_status === "completed"
                               ? "bg-green-500/20 text-green-500"
-                              : order.status === "pending"
+                              : order.order_status === "pending"
                               ? "bg-yellow-500/20 text-yellow-500"
                               : "bg-red-500/20 text-red-500"
                           }`}
                         >
-                          {order.status.toUpperCase()}
+                          {order.order_status.toUpperCase()}
                         </span>
                       </td>
                     </tr>

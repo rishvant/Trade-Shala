@@ -49,6 +49,14 @@ export interface SignupFormData {
   otp: string;
 }
 
+export interface User {
+  _id: string;
+  name: string;
+  email: string;
+  phoneNumber: string;
+  createdAt: string;
+}
+
 
 export interface GoogleLoginPayload {
   name: string;

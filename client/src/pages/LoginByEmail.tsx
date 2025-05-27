@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import I1 from "../assets/loginn.jpeg";
-import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { LoginByEmailForm } from "../types/types";
 import { loginByEmail } from "../services/authService";
 import { toast } from "sonner";
@@ -33,10 +32,10 @@ function LoginByEmail() {
     e.preventDefault();
     try {
       const response = await loginByEmail(form);
-      console.log(response);
       if (response.status === 200) {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user_id", response.data.user?._id);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
         toast.success(response.data.message || "Login successful!");
         navigate("/");
       }
@@ -51,6 +50,9 @@ function LoginByEmail() {
     }
   };
 
+  // const handleGoogleSignIn = () => {
+  //   console.log("Google Sign In clicked");
+  // };
   const handleGoogleLoginSuccess = async (credentialResponse: CredentialResponse) => {
   try {
     if (!credentialResponse.credential) {
@@ -131,7 +133,7 @@ function LoginByEmail() {
             </button>
           </form>
 
-          <div className="mt-6">
+          {/* <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300"></div>
@@ -162,7 +164,7 @@ function LoginByEmail() {
                 Login with Phone Number
               </Link>
             </div>
-          </div>
+          </div> */}
 
           <p className="text-center mt-6 text-gray-600">
             Don't have an account?{" "}
