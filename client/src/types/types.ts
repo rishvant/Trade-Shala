@@ -61,5 +61,4 @@ export interface User {
 export interface GoogleLoginPayload {
   name: string;
   email: string;
-  
 }

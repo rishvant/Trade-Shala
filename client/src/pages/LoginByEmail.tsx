@@ -1,18 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import I1 from "../assets/loginn.jpeg";
-import { LoginByEmailForm } from "../types/types";
+import { GoogleLoginPayload, LoginByEmailForm } from "../types/types";
 import { loginByEmail } from "../services/authService";
 import { toast } from "sonner";
-import {jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import { signInWithGoogle } from "../services/authService";
 import { GoogleLogin } from "@react-oauth/google";
-
-
-type GoogleUser = {
-  email: string;
-  name: string;
-};
 
 function LoginByEmail() {
   const navigate = useNavigate();
@@ -55,27 +49,27 @@ function LoginByEmail() {
   //   console.log("Google Sign In clicked");
   // };
   const handleGoogleLoginSuccess = async (credentialResponse: any) => {
-  try {
-    if (!credentialResponse.credential) {
-      throw new Error("No credential found");
+    try {
+      if (!credentialResponse.credential) {
+        throw new Error("No credential found");
+      }
+
+      const decoded = jwtDecode<GoogleLoginPayload>(credentialResponse.credential);
+      const { email, name } = decoded;
+
+      const response = await signInWithGoogle({ email, name });
+
+      if (response.status === 200 || response.status === 201) {
+        toast.success(response.data.message || "Login successful!");
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("user_id", response.data.user?._id);
+        navigate("/");
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Google login failed.");
+      console.error("Google login error:", error);
     }
-
-    const decoded = jwtDecode<GoogleUser>(credentialResponse.credential);
-    const { email, name } = decoded;
-
-    const response = await signInWithGoogle({ email, name });
-
-    if (response.status === 200 || response.status === 201) {
-      toast.success(response.data.message || "Login successful!");
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("user_id", response.data.user?._id);
-      navigate("/");
-    }
-  } catch (error: any) {
-    toast.error(error.response?.data?.message || "Google login failed.");
-    console.error("Google login error:", error);
-  }
-};
+  };
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center z-50">
@@ -134,7 +128,6 @@ function LoginByEmail() {
             </button>
           </form>
 
-          
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -146,15 +139,14 @@ function LoginByEmail() {
                 </span>
               </div>
             </div>
-          <div className="mt-4 w-full flex items-center justify-center">
-            
-  <GoogleLogin
-    onSuccess={handleGoogleLoginSuccess}
-    onError={() => toast.error("Google Sign-in Failed")}
-    size="large"
-    width="100%"
-  />
-</div>
+            <div className="mt-4 w-full flex items-center justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleLoginSuccess}
+                onError={() => toast.error("Google Sign-in Failed")}
+                size="large"
+                width="100%"
+              />
+            </div>
           </div>
 
           <p className="text-center mt-6 text-gray-600">
