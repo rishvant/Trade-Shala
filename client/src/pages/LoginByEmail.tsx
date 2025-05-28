@@ -6,6 +6,7 @@ import { loginByEmail } from "../services/authService";
 import { toast } from "sonner";
 import {jwtDecode} from "jwt-decode";
 import { signInWithGoogle } from "../services/authService";
+import { GoogleLogin } from "@react-oauth/google";
 
 
 type GoogleUser = {
@@ -53,7 +54,7 @@ function LoginByEmail() {
   // const handleGoogleSignIn = () => {
   //   console.log("Google Sign In clicked");
   // };
-  const handleGoogleLoginSuccess = async (credentialResponse: CredentialResponse) => {
+  const handleGoogleLoginSuccess = async (credentialResponse: any) => {
   try {
     if (!credentialResponse.credential) {
       throw new Error("No credential found");
@@ -133,7 +134,8 @@ function LoginByEmail() {
             </button>
           </form>
 
-          {/* <div className="mt-6">
+          
+          <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300"></div>
@@ -144,27 +146,16 @@ function LoginByEmail() {
                 </span>
               </div>
             </div>
-
-            <div className="mt-4">
+          <div className="mt-4 w-full flex items-center justify-center">
+            
   <GoogleLogin
     onSuccess={handleGoogleLoginSuccess}
-    onError={() => toast.error("Google login failed")}
+    onError={() => toast.error("Google Sign-in Failed")}
+    size="large"
     width="100%"
-    text="signin_with"
-    shape="rectangular"
-    theme="outline"
   />
 </div>
-
-            <div className="w-full flex items-center justify-center gap-2">
-              <Link
-                to="/login/phone"
-                className="mt-4 w-full text-center text-blue-600 hover:text-blue-800 transition-colors"
-              >
-                Login with Phone Number
-              </Link>
-            </div>
-          </div> */}
+          </div>
 
           <p className="text-center mt-6 text-gray-600">
             Don't have an account?{" "}
