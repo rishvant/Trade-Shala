@@ -62,3 +62,11 @@ export interface GoogleLoginPayload {
   name: string;
   email: string;
 }
+
+export interface WalletTransaction {
+  _id: string;
+  userId: string;
+  amount: number;
+  type: "deposit" | "withdraw";
+  createdAt: string;
+}

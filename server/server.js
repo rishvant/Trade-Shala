@@ -12,6 +12,7 @@ import stockRoutes from "./routes/stockRoutes.js";
 import transactionRoutes from './routes/transactionRoutes.js'
 import portfolioRoutes from './routes/portfolioRoutes.js';
 import strategyRoutes from './routes/strategyRoutes.js';
+import walletRoutes from './routes/Wallet.Route.js';
 import https from "https";
 
 const PORT = process.env.PORT || 3000;
@@ -39,6 +40,7 @@ app.use('/api/v1', authRoutes);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api", portfolioRoutes);
 app.use("/api", strategyRoutes);
+app.use("/api/wallet", walletRoutes);
 
 const server = http.createServer(app);
 

@@ -1,7 +1,4 @@
-import mongoose, { mongo } from "mongoose";
-
-// Destructure Schema from mongoose
-// const { Schema } = mongoose;
+import mongoose from "mongoose";
 
 const TransactionSchema = new mongoose.Schema(
   {

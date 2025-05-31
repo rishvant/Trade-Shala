@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FaWallet,
   FaArrowUp,
@@ -9,54 +9,51 @@ import {
 } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 import { motion } from "framer-motion";
+import { useTrade } from "@/context/context";
+import { getTransactions } from "@/services/walletService";
+import { WalletTransaction } from "@/types/types";
+import { formatDateTime, isToday } from "@/lib/utils";
 
 const WalletPage = () => {
-  const [balance, setBalance] = useState(25000);
+  const { balance, depositOrWithdrawFunds } = useTrade();
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [depositAmount, setDepositAmount] = useState(1000);
   const [isDemo, setIsDemo] = useState(true);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [transactions, setTransactions] = useState([
-    {
-      id: 1,
-      type: "Deposit",
-      amount: 5000,
-      date: "2025-01-30",
-      status: "Completed",
-    },
-    {
-      id: 3,
-      type: "Deposit",
-      amount: 10000,
-      date: "2025-01-25",
-      status: "Completed",
-    },
-  ]);
+  const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
 
   const handleDeposit = () => {
     if (depositAmount > 0 && isDemo) {
-      const newTransaction = {
-        id: transactions.length + 1,
-        type: "Deposit",
-        amount: depositAmount,
-        date: new Date().toISOString().split("T")[0],
-        status: "Completed",
-      };
-
-      setBalance((prev) => prev + depositAmount);
-      setTransactions([newTransaction, ...transactions]);
-
+      depositOrWithdrawFunds(depositAmount, "deposit");
       setShowDepositModal(false);
       setDepositAmount(1000);
     }
   };
+
+  const fetchTransactions = async () => {
+    const response: any = await getTransactions();
+    console.log("Transactions response:", response.data);
+    if (response.status === 200) {
+      setTransactions(response.data);
+    }
+  };
+
+  useEffect(() => {
+    fetchTransactions();
+  }, [balance]);
 
   const adjustAmount = (increment: boolean) => {
     setDepositAmount((prev) =>
       increment ? prev + 100 : Math.max(0, prev - 100)
     );
   };
+
+  const todaysDeposits = transactions.filter((tx) => isToday(tx.createdAt));
+  const todaysTotalAmount = todaysDeposits.reduce(
+    (acc, tx) => acc + tx.amount,
+    0
+  );
 
   return (
     <div className="min-h-screen bg-[#131722] text-white p-6">
@@ -93,7 +90,6 @@ const WalletPage = () => {
                   onClick={() => {
                     setIsDemo(false);
                     setShowDropdown(false);
-                    setBalance(0);
                     setTransactions([]);
                   }}
                   className={`w-full text-left px-4 py-2 hover:bg-green-500/10 transition-colors duration-200 ${
@@ -154,16 +150,18 @@ const WalletPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-[#1E222D] rounded-xl p-6">
                 <h3 className="text-gray-400 mb-2">Today's Deposits</h3>
-                <p className="text-2xl font-bold text-green-500">₹5,000</p>
+                <p className="text-2xl font-bold text-green-500">
+                  ₹{todaysTotalAmount.toLocaleString()}
+                </p>
               </div>
               <div className="bg-[#1E222D] rounded-xl p-6">
                 <h3 className="text-gray-400 mb-2">Today's Withdrawals</h3>
-                <p className="text-2xl font-bold text-red-500">₹2,000</p>
+                <p className="text-2xl font-bold text-red-500">₹0</p>
               </div>
-              <div className="bg-[#1E222D] rounded-xl p-6">
+              {/* <div className="bg-[#1E222D] rounded-xl p-6">
                 <h3 className="text-gray-400 mb-2">Pending Transactions</h3>
                 <p className="text-2xl font-bold text-yellow-500">1</p>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -183,39 +181,41 @@ const WalletPage = () => {
                   <tr className="text-gray-400 border-b border-gray-700">
                     <th className="text-left py-4 px-4">Type</th>
                     <th className="text-left py-4 px-4">Amount</th>
-                    <th className="text-left py-4 px-4">Date</th>
-                    <th className="text-left py-4 px-4">Status</th>
+                    <th className="text-left py-4 px-4">Date and Time</th>
+                    {/* <th className="text-left py-4 px-4">Status</th> */}
                   </tr>
                 </thead>
                 <tbody>
                   {transactions.map((tx) => (
                     <tr
-                      key={tx.id}
+                      key={tx._id}
                       className="border-b border-gray-700/50 hover:bg-gray-800/30"
                     >
                       <td className="py-4 px-4">
                         <div className="flex items-center space-x-2">
-                          {tx.type === "Deposit" ? (
+                          {tx.type === "deposit" ? (
                             <FaArrowDown className="text-green-500" />
                           ) : (
                             <FaArrowUp className="text-red-500" />
                           )}
                           <span
                             className={
-                              tx.type === "Deposit"
+                              tx.type === "deposit"
                                 ? "text-green-500"
                                 : "text-red-500"
                             }
                           >
-                            {tx.type}
+                            {tx.type.charAt(0).toUpperCase() + tx.type.slice(1)}
                           </span>
                         </div>
                       </td>
                       <td className="py-4 px-4">
                         ₹{tx.amount.toLocaleString()}
                       </td>
-                      <td className="py-4 px-4 text-gray-400">{tx.date}</td>
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4 text-gray-400">
+                        {formatDateTime(tx.createdAt)}
+                      </td>
+                      {/* <td className="py-4 px-4">
                         <span
                           className={`px-3 py-1 rounded-full text-xs ${
                             tx.status === "Completed"
@@ -225,7 +225,7 @@ const WalletPage = () => {
                         >
                           {tx.status}
                         </span>
-                      </td>
+                      </td> */}
                     </tr>
                   ))}
                 </tbody>

@@ -1,4 +1,11 @@
-import { createContext, useState, useContext, ReactNode } from "react";
+import { depositBalance, fetchBalance } from "@/services/walletService";
+import {
+  createContext,
+  useState,
+  useContext,
+  ReactNode,
+  useEffect,
+} from "react";
 
 // Define the order type
 interface Order {
@@ -29,6 +36,8 @@ interface TradeContextType {
   updateBalance: (amount: number) => void;
   positions: Map<string, { quantity: number; averagePrice: number }>;
   updatePosition: (symbol: string, quantity: number, price: number) => void;
+  depositOrWithdrawFunds: (amount: number, type:string) => Promise<void>;
+  refreshBalance: () => Promise<void>;
 }
 
 // Create the context
@@ -54,7 +63,7 @@ const generateOrderId = () =>
 export const TradeProvider: React.FC<TradeProviderProps> = ({ children }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [balance, setBalance] = useState(100000); // Initial balance of ₹100,000
+  const [balance, setBalance] = useState(0);
   const [positions, setPositions] = useState<
     Map<string, { quantity: number; averagePrice: number }>
   >(new Map());
@@ -79,11 +88,8 @@ export const TradeProvider: React.FC<TradeProviderProps> = ({ children }) => {
       pnl: 0,
     };
 
-    console.log("Adding new order:", newOrder); // Debug log
-
     setOrders((prevOrders) => {
       const updatedOrders = [newOrder, ...prevOrders];
-      console.log("Updated orders:", updatedOrders); // Debug log
       return updatedOrders;
     });
 
@@ -117,6 +123,38 @@ export const TradeProvider: React.FC<TradeProviderProps> = ({ children }) => {
       } else {
         setBalance((prev) => prev - orderTotal);
       }
+    }
+  };
+
+  useEffect(() => {
+    const getBalance = async () => {
+      try {
+        const latestBalance = await fetchBalance();
+        setBalance(latestBalance.balance);
+      } catch (err) {
+        console.error("Failed to fetch balance from API:", err);
+      }
+    };
+
+    getBalance();
+  }, []);
+
+  const refreshBalance = async () => {
+    try {
+      const latestBalance = await fetchBalance();
+      setBalance(latestBalance);
+    } catch (err) {
+      console.error("Failed to refresh balance:", err);
+    }
+  };
+
+  const depositOrWithdrawFunds = async (amount: number, type:string) => {
+    try {
+      const data = await depositBalance(amount, type);
+      setBalance(data.updatedBalance);
+    } catch (error) {
+      console.error(`Failed to ${type} funds:`, error);
+      throw error;
     }
   };
 
@@ -173,44 +211,11 @@ export const TradeProvider: React.FC<TradeProviderProps> = ({ children }) => {
         updateBalance,
         positions,
         updatePosition,
+        depositOrWithdrawFunds,
+        refreshBalance,
       }}
     >
       {children}
     </TradeContext.Provider>
   );
 };
-
-// Example usage in TradingPanel:
-/*
-import { useTrade } from './TradeContext';
-
-const TradingPanel: React.FC<TradingPanelProps> = ({
-  currentPrice,
-  symbol,
-}) => {
-  const { addOrder, balance } = useTrade();
-
-  const handleTrade = (action: "buy" | "sell") => {
-    if (orderType === "market") {
-      addOrder({
-        symbol,
-        type: orderType,
-        action,
-        quantity,
-        price: currentPrice,
-      });
-    } else {
-      addOrder({
-        symbol,
-        type: orderType,
-        action,
-        quantity,
-        price: limitPrice,
-        limitPrice,
-      });
-    }
-  };
-  
-  // Rest of the component...
-};
-*/

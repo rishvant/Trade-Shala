@@ -21,9 +21,9 @@ const OrderController = {
     },
     createOrder: async (req, res) => {
         try {
-            const { stock_symbol, order_type, order_category, type, quantity, price, limit_price, user_id, 
+            const { stock_symbol, order_type, order_category, type, quantity, price, limit_price, user_id,
                 order_status, execution_price, completion_price } = req.body;
-                console.log('req body is ',req.body);
+            console.log('req body is ', req.body);
             // Validate required fields
             if (!stock_symbol || !order_type || !order_category || !type || !quantity || !user_id) {
                 return res.status(400).json({ message: "All fields are required." });
@@ -43,10 +43,10 @@ const OrderController = {
                 execution_price,
                 completion_price
             });
-            console.log('new order before save is ',newOrder);
+            console.log('new order before save is ', newOrder);
             // Save the order to the database
             await newOrder.save();
-            console.log('new order after save is ',newOrder);
+            console.log('new order after save is ', newOrder);
             return res.status(201).json({ message: "Order created successfully.", data: newOrder });
         } catch (error) {
             console.error('Internal server error:', error);
