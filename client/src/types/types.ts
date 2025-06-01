@@ -57,7 +57,6 @@ export interface User {
   createdAt: string;
 }
 
-
 export interface GoogleLoginPayload {
   name: string;
   email: string;
@@ -69,4 +68,35 @@ export interface WalletTransaction {
   amount: number;
   type: "deposit" | "withdraw";
   createdAt: string;
+}
+
+export interface Order {
+  id: string;
+  symbol: string;
+  type: "market" | "limit";
+  action: "buy" | "sell";
+  quantity: number;
+  price: number;
+  limitPrice?: number;
+  status: "pending" | "completed" | "cancelled";
+  timestamp: Date;
+  total: number;
+  pnl: number;
+}
+
+export interface TradeContextType {
+  isLogin: boolean;
+  setIsLogin: (isLogin: boolean) => void;
+  orders: Order[];
+  addOrder: (
+    order: Omit<Order, "id" | "timestamp" | "status" | "total" | "pnl">
+  ) => void;
+  cancelOrder: (orderId: string) => void;
+  getOrdersBySymbol: (symbol: string) => Order[];
+  balance: number;
+  updateBalance: (amount: number) => void;
+  positions: Map<string, { quantity: number; averagePrice: number }>;
+  updatePosition: (symbol: string, quantity: number, price: number) => void;
+  depositOrWithdrawFunds: (amount: number, type: string) => Promise<void>;
+  refreshBalance: () => Promise<void>;
 }

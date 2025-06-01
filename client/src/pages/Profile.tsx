@@ -5,7 +5,6 @@ import {
   FaRupeeSign,
   FaChartLine,
   FaClock,
-  FaCalendarAlt,
 } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { fetchOrders } from "@/services/stockService";

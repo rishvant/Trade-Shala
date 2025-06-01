@@ -1,4 +1,5 @@
 import { depositBalance, fetchBalance } from "@/services/walletService";
+import { Order, TradeContextType } from "@/types/types";
 import {
   createContext,
   useState,
@@ -6,39 +7,6 @@ import {
   ReactNode,
   useEffect,
 } from "react";
-
-// Define the order type
-interface Order {
-  id: string;
-  symbol: string;
-  type: "market" | "limit";
-  action: "buy" | "sell";
-  quantity: number;
-  price: number;
-  limitPrice?: number;
-  status: "pending" | "completed" | "cancelled";
-  timestamp: Date;
-  total: number;
-  pnl: number;
-}
-
-// Define the context type
-interface TradeContextType {
-  isLogin: boolean;
-  setIsLogin: (isLogin: boolean) => void;
-  orders: Order[];
-  addOrder: (
-    order: Omit<Order, "id" | "timestamp" | "status" | "total" | "pnl">
-  ) => void;
-  cancelOrder: (orderId: string) => void;
-  getOrdersBySymbol: (symbol: string) => Order[];
-  balance: number;
-  updateBalance: (amount: number) => void;
-  positions: Map<string, { quantity: number; averagePrice: number }>;
-  updatePosition: (symbol: string, quantity: number, price: number) => void;
-  depositOrWithdrawFunds: (amount: number, type:string) => Promise<void>;
-  refreshBalance: () => Promise<void>;
-}
 
 // Create the context
 export const TradeContext = createContext<TradeContextType | null>(null);
