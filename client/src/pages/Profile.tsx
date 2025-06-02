@@ -9,6 +9,7 @@ import {
 import { useEffect, useState } from "react";
 import { fetchOrders } from "@/services/stockService";
 import { User } from "@/types/types";
+import { useTrade } from "@/context/context";
 
 const Profile = () => {
   let user_id = localStorage.getItem("user_id");
@@ -21,6 +22,7 @@ const Profile = () => {
   const [filterStatus, setFilterStatus] = useState<
     "all" | "completed" | "pending" | "cancelled" | "executed"
   >("all");
+  const { balance } = useTrade();
 
   useEffect(() => {
     const getOrders = async () => {
@@ -99,7 +101,7 @@ const Profile = () => {
                     <FaRupeeSign className="text-green-500 text-xl" />
                   </div>
                   <p className="text-2xl font-bold text-white">
-                    {/* ₹{balance.toFixed(2)} */}
+                    ₹{balance.toFixed(2)}
                   </p>
                   <p className="text-green-500 text-sm mt-2">
                     Available for trading

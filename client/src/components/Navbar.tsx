@@ -1,10 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
-import { IoWalletSharp } from "react-icons/io5";
+import { FaRupeeSign } from "react-icons/fa";
 import { CgProfile } from "react-icons/cg";
 import { useState, useEffect, useRef } from "react";
 import { Search, X } from "lucide-react";
 import { searchStockData } from "../services/stockService";
 import { toast } from "sonner";
+import { IoWalletSharp } from "react-icons/io5";
 
 interface SearchResult {
   [key: string]: string;
@@ -271,6 +272,7 @@ const Navbar = () => {
                     <li>
                       <Link
                         to="/wallet"
+                        onClick={() => setIsProfileMenuOpen(false)}
                         className="w-full flex items-center space-x-2 text-left py-2 px-4 hover:bg-[#2a2d39] transition-colors duration-200 rounded-md"
                       >
                         <IoWalletSharp className="text-sm" />
@@ -278,20 +280,26 @@ const Navbar = () => {
                       </Link>
                     </li>
                     <li>
-                      <button className="w-full flex items-center space-x-2 text-left py-2 px-4 hover:bg-[#2a2d39] transition-colors duration-200 rounded-md">
+                      <Link
+                        to="/profile"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className="w-full flex items-center space-x-2 text-left py-2 px-4 hover:bg-[#2a2d39] transition-colors duration-200 rounded-md"
+                      >
                         <CgProfile className="text-sm" />
-                        <Link to="/profile" className="text-sm font-medium">
-                          Profile
-                        </Link>
-                      </button>
+                        <span className="text-sm font-medium">Profile</span>
+                      </Link>
                     </li>
                     <li>
-                      <button className="w-full flex items-center space-x-2 text-left py-2 px-4 hover:bg-[#2a2d39] transition-colors duration-200 rounded-md">
-                        <IoWalletSharp className="text-sm" />
-                        <Link to="/wallet" className="text-sm font-medium">
+                      <Link
+                        to="/wallet"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className="w-full flex items-center space-x-2 text-left py-2 px-4 hover:bg-[#2a2d39] transition-colors duration-200 rounded-md"
+                      >
+                        <FaRupeeSign className="text-sm" />
+                        <span className="text-sm font-medium">
                           Transactions
-                        </Link>
-                      </button>
+                        </span>
+                      </Link>
                     </li>
                   </ul>
                 </div>

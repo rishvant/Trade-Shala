@@ -441,13 +441,7 @@ function Stock() {
     <div className="min-h-screen bg-[#131722]">
       <header className="bg-[#1E222D] shadow-lg border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <ArrowUpDown className="h-8 w-8 text-blue-500" />
-              <h1 className="ml-2 text-2xl font-bold text-white">
-                StockTrader Pro
-              </h1>
-            </div>
+          <div className="flex justify-end items-center">
             <div className="flex items-center space-x-4">
               <Clock className="h-5 w-5 text-gray-400" />
               <span
