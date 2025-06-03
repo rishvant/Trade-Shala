@@ -331,11 +331,6 @@ function Stock() {
     }
   }, [currentPrice]);
 
-  // const handleClosePosition = (position: Position) => {
-  //   setSelectedPosition(position);
-  //   setModalIsOpen(true);
-  // };
-
   const confirmClosePosition = () => {
     if (selectedPosition) {
       setPositions((prevPositions) =>
@@ -367,15 +362,10 @@ function Stock() {
     }
   };
 
-  const openTechnicalAnalysis = () => {
-    setIsTechnicalAnalysisOpen(true);
-  };
-
   const fetchPositions = async () => {
     try {
       const user_id = localStorage.getItem("user_id");
       const response = await fetchPortfolios(user_id || "");
-      console.log(response);
       const data = response.data;
 
       const formattedPositions: Position[] = data.flatMap((item: any) =>
@@ -385,7 +375,7 @@ function Stock() {
             const pnl =
               holding.trade_type === "buy"
                 ? (currentPrice - holding.average_price) * holding.quantity
-                : (holding.average_price - currentPrice) * holding.quantity; // For sell trade_type
+                : (holding.average_price - currentPrice) * holding.quantity;
 
             return {
               id: holding._id,
