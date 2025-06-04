@@ -115,7 +115,6 @@ function Stock() {
       try {
         // For initial load, fetch intraday data
         const response = await fetchStockData(`intraday/${stockName}`);
-        console.log("Initial fetch response:", response); // Debug log
         const transformedData = transformCandleData(response.data.data);
         setStockData(transformedData);
         setMarketStatus(response.data.marketStatus);
@@ -155,7 +154,6 @@ function Stock() {
 
     // Handle market status updates
     socket.on("marketStatusChange", (status: string) => {
-      console.log(status);
     });
 
     socket.emit("selectSymbol", stockName);
@@ -170,12 +168,10 @@ function Stock() {
           return;
         }
 
-        console.log(newData);
 
         const ohlcData =
           newData.feeds[stockKey]?.ff?.marketFF?.marketOHLC?.ohlc;
 
-        console.log("OHLC Data:", ohlcData);
 
         if (!ohlcData) {
           console.log("No OHLC data found");
@@ -199,8 +195,6 @@ function Stock() {
           volume: data.volume,
         }));
 
-        console.log("Transformed Data:", transformedData);
-
         // Merge and remove duplicates using a Map
         setStockData((prevData) => {
           const mergedData = [...prevData, ...transformedData];
@@ -222,14 +216,12 @@ function Stock() {
     };
   }, [stockName]);
 
-  console.log(stockData);
-
   const currentPrice =
     stockData.length > 0 ? stockData[stockData.length - 1].price : 0;
   const previousPrice =
     stockData.length > 1 ? stockData[stockData.length - 2].price : currentPrice;
 
-  const priceChange = currentPrice - stockData[0]?.price.toFixed(2); ///yaha thik karna hai
+  const priceChange = currentPrice - stockData[0]?.price.toFixed(2);
   const priceChangePercent = previousPrice
     ? (priceChange / previousPrice) * 100
     : 0;
@@ -244,11 +236,9 @@ function Stock() {
       } else {
         const { interval, fromDate, toDate } = timeRangeConfig[range];
         const path = `historical-candle/${stockName}/${interval}/${toDate}/${fromDate}`;
-        console.log("Fetching path:", path); // Debug log
         response = await fetchStockData(path);
       }
 
-      console.log("Time range response:", response); // Debug log
       const transformedData = transformCandleData(response.data.data);
       setStockData(transformedData);
     } catch (error) {
@@ -261,7 +251,6 @@ function Stock() {
 
   // Handler for new trades
   const handleNewTrade = (orderData: any) => {
-    console.log("New trade:", orderData);
     fetchPositions();
     // const { symbol, quantity, price, tradeType, type } = orderData;
     // const newPosition: Position = {
@@ -403,7 +392,6 @@ function Stock() {
   }, [stockName]);
 
   const handleClosePosition = (position: any) => {
-    console.log(position);
     const orderData = {
       stock_symbol: stockName,
       trade_type: position.tradeType,
