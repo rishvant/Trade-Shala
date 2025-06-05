@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Clock, ArrowUpDown, TrendingUp, TrendingDown, X } from "lucide-react";
+import { Clock, TrendingUp, TrendingDown, X } from "lucide-react";
 import StockChart from "../components/StockChart";
 import TradingPanel from "../components/TradingPanel";
 import StockSkeleton from "../components/StockSkeleton";
@@ -153,7 +153,7 @@ function Stock() {
     const socket = io(SOCKET_BASE_URL); // WebSocket connection
 
     // Handle market status updates
-    socket.on("marketStatusChange", (status: string) => {
+    socket.on("marketStatusChange", () => {
     });
 
     socket.emit("selectSymbol", stockName);
@@ -250,7 +250,7 @@ function Stock() {
   };
 
   // Handler for new trades
-  const handleNewTrade = (orderData: any) => {
+  const handleNewTrade = () => {
     fetchPositions();
     // const { symbol, quantity, price, tradeType, type } = orderData;
     // const newPosition: Position = {
