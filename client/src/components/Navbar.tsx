@@ -43,7 +43,7 @@ const Navbar = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user_id");
-    localStorage.removeItem("userData");
+    localStorage.removeItem("user");
     toast.error("Logged out successfully!");
     navigate("/login/email");
   };
