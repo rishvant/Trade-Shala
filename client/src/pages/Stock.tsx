@@ -400,14 +400,24 @@ function Stock() {
       user_id: localStorage.getItem("user_id"),
     };
 
+    toast.loading("Closing position...", { id: "close-position" });
+
     socket.emit("completeOrder", orderData);
 
-    socket.on("completeOrder", (response) => {
-      alert(response.message);
+    socket.once("orderCompleted", (response) => {
+      toast.success(response.message || "Position closed successfully!", {
+        id: "close-position",
+        style: { background: "#064e3b", color: "white" },
+      });
+      // Refresh positions after successful close
+      fetchPositions();
     });
 
-    socket.on("error", (error) => {
-      alert(error);
+    socket.once("error", (error) => {
+      toast.error(error || "Failed to close position", {
+        id: "close-position",
+        style: { background: "#7f1d1d", color: "white" },
+      });
     });
   };
 
@@ -423,9 +433,8 @@ function Stock() {
             <div className="flex items-center space-x-4">
               <Clock className="h-5 w-5 text-gray-400" />
               <span
-                className={`${
-                  marketStatus === "open" ? "text-green-400" : "text-red-400"
-                }`}
+                className={`${marketStatus === "open" ? "text-green-400" : "text-red-400"
+                  }`}
               >
                 Market {marketStatus.toUpperCase()}
               </span>
@@ -457,9 +466,8 @@ function Stock() {
                       ₹{currentPrice.toFixed(2)}
                     </p>
                     <p
-                      className={`${
-                        priceChange >= 0 ? "text-green-400" : "text-red-400"
-                      }`}
+                      className={`${priceChange >= 0 ? "text-green-400" : "text-red-400"
+                        }`}
                     >
                       {priceChange >= 0 ? "+" : ""}
                       {priceChange.toFixed(2)} ({priceChangePercent.toFixed(2)}
@@ -475,11 +483,10 @@ function Stock() {
                     <button
                       key={range}
                       onClick={() => handleTimeRangeChange(range)}
-                      className={`px-4 py-2 rounded-md transition-colors ${
-                        timeRange === range
-                          ? "bg-blue-500 text-white"
-                          : "bg-[#262B3D] text-gray-300 hover:bg-[#2A2F44]"
-                      }`}
+                      className={`px-4 py-2 rounded-md transition-colors ${timeRange === range
+                        ? "bg-blue-500 text-white"
+                        : "bg-[#262B3D] text-gray-300 hover:bg-[#2A2F44]"
+                        }`}
                     >
                       {range}
                     </button>
@@ -537,12 +544,11 @@ function Stock() {
                   <span className="text-sm text-gray-400">
                     Total P&L:
                     <span
-                      className={`ml-2 font-semibold ${
-                        positions.reduce((total, pos) => total + pos.pnl, 0) >=
+                      className={`ml-2 font-semibold ${positions.reduce((total, pos) => total + pos.pnl, 0) >=
                         0
-                          ? "text-green-400"
-                          : "text-red-400"
-                      }`}
+                        ? "text-green-400"
+                        : "text-red-400"
+                        }`}
                     >
                       ₹
                       {positions
@@ -565,20 +571,18 @@ function Stock() {
                               {position.symbol}
                             </h4>
                             <span
-                              className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                                position.tradeType === "buy"
-                                  ? "bg-green-500/20 text-green-400"
-                                  : "bg-red-500/20 text-red-400"
-                              }`}
+                              className={`ml-2 px-2 py-0.5 text-xs rounded-full ${position.tradeType === "buy"
+                                ? "bg-green-500/20 text-green-400"
+                                : "bg-red-500/20 text-red-400"
+                                }`}
                             >
                               {position.tradeType}
                             </span>
                             <span
-                              className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                                position.type === "INTRADAY"
-                                  ? "bg-blue-500/20 text-blue-400"
-                                  : "bg-purple-500/20 text-purple-400"
-                              }`}
+                              className={`ml-2 px-2 py-0.5 text-xs rounded-full ${position.type === "INTRADAY"
+                                ? "bg-blue-500/20 text-blue-400"
+                                : "bg-purple-500/20 text-purple-400"
+                                }`}
                             >
                               {position.type}
                             </span>
@@ -593,11 +597,10 @@ function Stock() {
                             ₹{position.currentPrice.toFixed(2)}
                           </p>
                           <p
-                            className={`text-sm flex items-center justify-end ${
-                              position.pnl >= 0
-                                ? "text-green-400"
-                                : "text-red-400"
-                            }`}
+                            className={`text-sm flex items-center justify-end ${position.pnl >= 0
+                              ? "text-green-400"
+                              : "text-red-400"
+                              }`}
                           >
                             {position.pnl >= 0 ? (
                               <TrendingUp className="h-4 w-4 mr-1" />

@@ -29,7 +29,7 @@ const GeminiChatbot: React.FC<GeminiChatbotProps> = ({ apiKey }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash-thinking-exp-01-21",
+    model: "gemini-2.5-flash",
   });
   const [isExpanded, setIsExpanded] = useState(false);
 

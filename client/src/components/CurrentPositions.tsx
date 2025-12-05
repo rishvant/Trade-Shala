@@ -8,17 +8,18 @@ import { SOCKET_BASE_URL } from "@/services/API";
 interface Position {
   _id: string;
   stock_symbol: string;
-  order_category: "intraday" | "delivery" | "futures" | "options";
+  trade_category?: "intraday" | "delivery" | "futures" | "options";
   quantity: number;
-  execution_price: number;
+  execution_price?: number;
   average_price: number;
-  current_price: number;
-  pnl: number;
-  pnlPercentage: number;
+  current_price?: number;
+  pnl?: number;
+  pnlPercentage?: number;
   type: "buy" | "sell";
-  order_type: "market" | "limit";
-  createdAt: string;
-  updatedAt: string;
+  trade_type?: "buy" | "sell";
+  order_type?: "market" | "limit";
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface CurrentPositionsProps {
@@ -35,9 +36,8 @@ const CurrentPositions: React.FC<CurrentPositionsProps> = ({
   );
 
   useEffect(() => {
-    const socket = io(SOCKET_BASE_URL); // WebSocket connection
+    const socket = io(SOCKET_BASE_URL);
 
-    // Handle market status updates
     socket.on("marketStatusChange", (status: string) => {
       console.log(status);
     });
@@ -51,12 +51,8 @@ const CurrentPositions: React.FC<CurrentPositionsProps> = ({
         const stockKey = Object.keys(newData.feeds || {})[0];
         if (!stockKey) return;
 
-        console.log("Full Data:", newData);
-
         const ohlcData =
           newData.feeds[stockKey]?.ff?.marketFF?.marketOHLC?.ohlc;
-
-        console.log("OHLC Data:", ohlcData);
 
         if (!ohlcData) return;
 
@@ -71,9 +67,6 @@ const CurrentPositions: React.FC<CurrentPositionsProps> = ({
           price: parseFloat(data.close),
         }));
 
-        console.log("Transformed Data:", transformedData);
-
-        // Set updated prices for each stock
         setUpdatedPrices((prev) => ({
           ...prev,
           [stockKey]:
@@ -82,8 +75,6 @@ const CurrentPositions: React.FC<CurrentPositionsProps> = ({
         }));
       }
     });
-
-    console.log(updatedPrices)
 
     return () => {
       socket.disconnect();
@@ -101,41 +92,53 @@ const CurrentPositions: React.FC<CurrentPositionsProps> = ({
 
   const totalPnL = positions?.reduce((acc, position) => {
     const currentPrice =
-      updatedPrices[position.stock_symbol] || position.current_price;
+      updatedPrices[position.stock_symbol] || position.current_price || position.average_price || 0;
+    const avgPrice = position.average_price || position.execution_price || 0;
+    const qty = position.quantity || 0;
+
+    if (!avgPrice || !qty) return acc;
+
+    const tradeType = position.type || position.trade_type || "buy";
     const pnl =
-      position.type === "buy"
-        ? (currentPrice - position.average_price) * position.quantity
-        : (position.average_price - currentPrice) * position.quantity;
+      tradeType === "buy"
+        ? (currentPrice - avgPrice) * qty
+        : (avgPrice - currentPrice) * qty;
     return acc + pnl;
-  }, 0);
+  }, 0) || 0;
 
   return (
-    <div className="bg-[#1E222D] rounded-lg shadow-lg border border-gray-800 p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-bold text-white">Current Positions</h3>
-        {positions?.length > 0 && (
+    <div className="space-y-4">
+      {positions?.length > 0 && (
+        <div className="flex justify-between items-center mb-2">
           <span
-            className={`text-sm font-semibold ${
-              totalPnL >= 0 ? "text-green-400" : "text-red-400"
-            }`}
+            className={`text-sm font-semibold ${totalPnL >= 0 ? "text-green-400" : "text-red-400"
+              }`}
           >
             Total P&L: ₹{totalPnL.toFixed(2)}
           </span>
-        )}
-      </div>
+        </div>
+      )}
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {positions?.length > 0 ? (
           positions?.map((position) => {
             const currentPrice =
-              updatedPrices[position.stock_symbol] || position.current_price;
+              updatedPrices[position.stock_symbol] ||
+              position.current_price ||
+              position.average_price ||
+              position.execution_price ||
+              0;
+
+            const avgPrice = position.average_price || position.execution_price || 0;
+            const qty = position.quantity || 0;
+            const tradeType = position.type || position.trade_type || "buy";
+
             const pnl =
-              position.type === "buy"
-                ? (currentPrice - position.average_price) * position.quantity
-                : (position.average_price - currentPrice) * position.quantity;
+              tradeType === "buy"
+                ? (currentPrice - avgPrice) * qty
+                : (avgPrice - currentPrice) * qty;
             const pnlPercentage =
-              (pnl / (position.average_price * position.quantity)) * 100 || 0;
-            console.log(currentPrice)
+              avgPrice && qty ? (pnl / (avgPrice * qty)) * 100 : 0;
 
             return (
               <motion.div
@@ -144,14 +147,28 @@ const CurrentPositions: React.FC<CurrentPositionsProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-[#262B3D] rounded-lg p-4 hover:bg-[#2A2F44] transition-colors relative group"
               >
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h4 className="text-white font-semibold">
-                      {position.stock_symbol}
-                    </h4>
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="text-white font-semibold text-lg">
+                        {position.stock_symbol}
+                      </h4>
+                      <span
+                        className={`px-2 py-0.5 text-xs rounded-full font-medium ${tradeType === "buy"
+                            ? "bg-green-500/20 text-green-400"
+                            : "bg-red-500/20 text-red-400"
+                          }`}
+                      >
+                        {tradeType?.toUpperCase()}
+                      </span>
+                      {position.trade_category && (
+                        <span className="px-2 py-0.5 text-xs rounded-full bg-blue-500/20 text-blue-400 font-medium">
+                          {position.trade_category?.toUpperCase()}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-gray-400">
-                      Qty: {position.quantity} | Exec: ₹
-                      {position.average_price.toFixed(2)}
+                      Qty: {qty} | Avg: ₹{avgPrice.toFixed(2)}
                     </p>
                   </div>
                   <button
@@ -162,37 +179,36 @@ const CurrentPositions: React.FC<CurrentPositionsProps> = ({
                     <X className="h-4 w-4 text-red-400" />
                   </button>
                 </div>
-                <div className="grid grid-cols-2 gap-4 mt-4">
+                <div className="flex justify-between items-center pt-3 border-t border-gray-700/50">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Current Price</p>
+                    <p className="text-white font-semibold text-lg">₹{currentPrice.toFixed(2)}</p>
+                  </div>
                   <div className="text-right">
-                    <p className="text-white">₹{currentPrice?.toFixed(2)}</p>
+                    <p className="text-xs text-gray-500 mb-1">P&L</p>
                     <p
-                      className={`text-sm flex items-center justify-end ${
-                        pnl >= 0 ? "text-green-400" : "text-red-400"
-                      }`}
+                      className={`font-semibold text-lg flex items-center justify-end ${pnl >= 0 ? "text-green-400" : "text-red-400"
+                        }`}
                     >
                       {pnl >= 0 ? (
                         <TrendingUp className="h-4 w-4 mr-1" />
                       ) : (
                         <TrendingDown className="h-4 w-4 mr-1" />
                       )}
-                      ₹{Math.abs(pnl).toFixed(2)} ({pnlPercentage.toFixed(2)}%)
+                      {pnl >= 0 ? "+" : ""}₹{Math.abs(pnl).toFixed(2)}
                     </p>
-                  </div>
-                  <div className="col-span-2 mt-2 text-xs text-gray-500">
-                    <span>
-                      Opened: {new Date(position.createdAt).toLocaleString()}
-                    </span>
-                    <span className="ml-4">
-                      Updated: {new Date(position.updatedAt).toLocaleString()}
-                    </span>
+                    <p className={`text-xs ${pnl >= 0 ? "text-green-400/70" : "text-red-400/70"}`}>
+                      ({pnlPercentage.toFixed(2)}%)
+                    </p>
                   </div>
                 </div>
               </motion.div>
             );
           })
         ) : (
-          <div className="text-center py-8 text-gray-400">
-            No open positions
+          <div className="text-center py-12 text-gray-400">
+            <p className="text-lg">No open positions</p>
+            <p className="text-sm mt-2">Start trading to see your positions here</p>
           </div>
         )}
       </div>

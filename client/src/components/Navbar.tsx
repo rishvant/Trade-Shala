@@ -44,8 +44,10 @@ const Navbar = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user_id");
     localStorage.removeItem("user");
-    toast.error("Logged out successfully!");
-    navigate("/login/email");
+    toast.success("Logged out successfully!");
+    navigate("/", { replace: true });
+    // Force reload to ensure all components re-render with logged-out state
+    setTimeout(() => window.location.reload(), 100);
   };
 
   const toggleProfileMenu = () => {
@@ -168,18 +170,16 @@ const Navbar = () => {
 
           {/* Search Input - Desktop & Mobile Overlay */}
           <div
-            className={`${
-              isSearchOpen
+            className={`${isSearchOpen
                 ? "fixed inset-0 bg-black/50 lg:relative lg:bg-transparent"
                 : "hidden lg:block"
-            }`}
+              }`}
           >
             <div
-              className={`${
-                isSearchOpen
+              className={`${isSearchOpen
                   ? "absolute top-0 left-0 right-0 p-4 bg-[#131722] lg:relative lg:p-0"
                   : "relative"
-              }`}
+                }`}
             >
               <div className="relative">
                 <input
@@ -187,24 +187,22 @@ const Navbar = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search stocks..."
-                  className={`w-full lg:w-96 bg-[#1E222D] text-gray-300 px-4 py-2 pl-10 pr-10 rounded-lg border focus:outline-none transition-all duration-200 ${
-                    isSearching
+                  className={`w-full lg:w-96 bg-[#1E222D] text-gray-300 px-4 py-2 pl-10 pr-10 rounded-lg border focus:outline-none transition-all duration-200 ${isSearching
                       ? "border-blue-500/50 bg-gradient-to-r from-[#1E222D] via-[#262932] to-[#1E222D] bg-[length:200%_100%]"
                       : "border-gray-700 focus:border-blue-500"
-                  }`}
+                    }`}
                   style={
                     isSearching
                       ? {
-                          animation:
-                            "searchBarLoading 1.5s ease-in-out infinite",
-                        }
+                        animation:
+                          "searchBarLoading 1.5s ease-in-out infinite",
+                      }
                       : {}
                   }
                 />
                 <Search
-                  className={`absolute left-3 top-1/2 transform -translate-y-1/2 transition-colors duration-200 ${
-                    isSearching ? "text-blue-500" : "text-gray-400"
-                  }`}
+                  className={`absolute left-3 top-1/2 transform -translate-y-1/2 transition-colors duration-200 ${isSearching ? "text-blue-500" : "text-gray-400"
+                    }`}
                   size={18}
                 />
                 {isSearchOpen && (
@@ -220,11 +218,10 @@ const Navbar = () => {
               {/* Search Results Dropdown */}
               {showResults && Object.keys(searchResults).length > 0 && (
                 <div
-                  className={`absolute w-full mt-2 bg-[#1E222D] border border-gray-700 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto transition-all duration-200 ${
-                    isSearching
+                  className={`absolute w-full mt-2 bg-[#1E222D] border border-gray-700 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto transition-all duration-200 ${isSearching
                       ? "opacity-60 translate-y-1"
                       : "opacity-100 translate-y-0"
-                  }`}
+                    }`}
                 >
                   {Object.entries(searchResults).map(([symbol, name]) => (
                     <div
@@ -312,11 +309,10 @@ const Navbar = () => {
           {/* Get Started Button */}
           {isLogin ? (
             <Link
-              className={`p-2 rounded-md text-sm font-semibold shadow-md transition duration-300 transform hover:scale-105 ${
-                isLogin
+              className={`p-2 rounded-md text-sm font-semibold shadow-md transition duration-300 transform hover:scale-105 ${isLogin
                   ? "bg-[#d32f2f] text-white hover:bg-[#c62828]" // Logout button style (red)
                   : "bg-[#2962ff] text-white hover:bg-[#1c54d4]" // Login button style (blue)
-              }`}
+                }`}
               to="/"
               onClick={handleLogout}
             >
@@ -324,11 +320,10 @@ const Navbar = () => {
             </Link>
           ) : (
             <Link
-              className={`p-2 rounded-md text-sm font-semibold shadow-md transition duration-300 transform hover:scale-105 ${
-                isLogin
+              className={`p-2 rounded-md text-sm font-semibold shadow-md transition duration-300 transform hover:scale-105 ${isLogin
                   ? "bg-[#d32f2f] text-white hover:bg-[#c62828]" // Logout button style (red)
                   : "bg-[#2962ff] text-white hover:bg-[#1c54d4]" // Login button style (blue)
-              }`}
+                }`}
               onClick={isLogin ? handleLogout : undefined}
               to="/login/email"
             >

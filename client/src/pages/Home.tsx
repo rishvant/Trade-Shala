@@ -1,4 +1,4 @@
-// import { useState } from "react";
+import { useState, useEffect } from "react";
 // import { ChartLineIcon, StarIcon, Search } from "lucide-react";
 import HeroSection from "../components/HeroSection";
 // import Slider from "react-slick";
@@ -14,10 +14,27 @@ import TopGainers from "../components/TopGainers";
 const Home = () => {
   // const [activeTab, setActiveTab] = useState("indices");
   // const [searchTerm, setSearchTerm] = useState("");
-  const isLogin = localStorage.getItem("token") ? true : false;
+  const [isLogin, setIsLogin] = useState(localStorage.getItem("token") ? true : false);
   // const [searchResults, setSearchResults] = useState<any[]>([]);
   // const [isLoading, setIsLoading] = useState(false);
   // const navigate = useNavigate();
+
+  // Check authentication status on mount and when localStorage changes
+  useEffect(() => {
+    const checkAuth = () => {
+      setIsLogin(localStorage.getItem("token") ? true : false);
+    };
+
+    // Check on mount
+    checkAuth();
+
+    // Listen for storage events (when localStorage changes in other tabs/windows)
+    window.addEventListener("storage", checkAuth);
+
+    return () => {
+      window.removeEventListener("storage", checkAuth);
+    };
+  }, []);
 
   // const settings = {
   //   dots: false,

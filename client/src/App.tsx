@@ -6,6 +6,7 @@ import Navbar from "./components/Navbar";
 import News from "./pages/News";
 import WalletPage from "./pages/Wallet";
 import Stock from "./pages/Stock";
+import Stocks from "./pages/Stocks";
 import LoginByPhone from "./pages/LoginByPhone";
 import LoginByEmail from "./pages/LoginByEmail";
 import Signup from "./pages/Signup";
@@ -78,6 +79,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Marketplace />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/stocks"
+            element={
+              <ProtectedRoute>
+                <Stocks />
               </ProtectedRoute>
             }
           />

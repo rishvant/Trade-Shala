@@ -72,12 +72,12 @@ const Profile = () => {
                   <p className="text-white font-semibold">
                     {user_data?.createdAt
                       ? new Date(user_data.createdAt).toLocaleDateString(
-                          "en-US",
-                          {
-                            year: "numeric",
-                            month: "long",
-                          }
-                        )
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "long",
+                        }
+                      )
                       : "N/A"}
                   </p>
                 </div>
@@ -169,11 +169,10 @@ const Profile = () => {
                     >
                       <td className="py-4">
                         <span
-                          className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            order.type === "buy"
+                          className={`px-3 py-1 rounded-full text-sm font-medium ${order.type === "buy"
                               ? "bg-green-500/20 text-green-500"
                               : "bg-red-500/20 text-red-500"
-                          }`}
+                            }`}
                         >
                           {order.type?.toUpperCase()}
                         </span>
@@ -188,40 +187,33 @@ const Profile = () => {
                         {order.quantity}
                       </td>
                       <td className="py-4 text-right text-white">
-                        ₹{order.completion_price.toFixed(2)}
+                        ₹{order.completion_price?.toFixed(2) || order.execution_price?.toFixed(2) || "0.00"}
                       </td>
                       <td className="py-4 text-right text-white">
-                        ₹{order.completion_price * order.quantity.toFixed(2)}
+                        ₹{((order.completion_price || order.execution_price || 0) * (order.quantity || 0)).toFixed(2)}
                       </td>
                       <td className="py-4 text-right">
                         <span
                           className={
-                            order.completion_price >= 0
+                            (order.completion_price || 0) >= 0
                               ? "text-green-500"
                               : "text-red-500"
                           }
                         >
-                          ₹{order.completion_price.toFixed(2)}
+                          ₹{(order.completion_price || 0).toFixed(2)}
                           <span className="text-sm ml-1">
-                            (
-                            {(
-                              (order.completion_price /
-                                order.completion_price) *
-                              100
-                            ).toFixed(2)}
-                            %)
+                            (0.00%)
                           </span>
                         </span>
                       </td>
                       <td className="py-4">
                         <span
-                          className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            order.order_status === "completed"
+                          className={`px-3 py-1 rounded-full text-sm font-medium ${order.order_status === "completed"
                               ? "bg-green-500/20 text-green-500"
                               : order.order_status === "pending"
-                              ? "bg-yellow-500/20 text-yellow-500"
-                              : "bg-red-500/20 text-red-500"
-                          }`}
+                                ? "bg-yellow-500/20 text-yellow-500"
+                                : "bg-red-500/20 text-red-500"
+                            }`}
                         >
                           {order.order_status.toUpperCase()}
                         </span>

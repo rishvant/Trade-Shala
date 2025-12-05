@@ -12,6 +12,8 @@ import { dirname } from "path";
 import Order from "../models/Order.Model.js";
 import Portfolio from "../models/Portfolio.Model.js";
 import User from "../models/User.Model.js";
+import Transaction from "../models/Transactions.Model.js";
+import WalletTransaction from "../models/WalletTransaction.Model.js";
 
 // Initialize global variables
 let protobufRoot = null;
@@ -114,13 +116,63 @@ const connectSocket = async (app) => {
       }
     );
 
-    // Schedule a job to check the market status at 3:30 PM
+    // Schedule a job to auto-close all intraday positions at 3:30 PM
     schedule.scheduleJob(
       { hour: 15, minute: 30, tz: "Asia/Kolkata" },
       async () => {
-        const marketStatus = "closed"; // Market is closed at 3:30 PM
-        // Emit the market status to the connected client
-        socket.emit("marketStatusChange", marketStatus);
+        try {
+          console.log("🕒 Market closing at 3:30 PM - Auto-closing all intraday positions");
+
+          // Find all intraday positions
+          const portfolios = await Portfolio.find({
+            "holdings.trade_category": "intraday"
+          });
+
+          for (const portfolio of portfolios) {
+            const user = await User.findById(portfolio.user_id);
+            if (!user) continue;
+
+            for (const holding of portfolio.holdings) {
+              if (holding.trade_category === "intraday") {
+                // Calculate P&L
+                const currentPrice = holding.average_price; // Use last known price
+                const pnl = holding.trade_type === "buy"
+                  ? (currentPrice - holding.average_price) * holding.quantity
+                  : (holding.average_price - currentPrice) * holding.quantity;
+
+                // Update user balance with P&L
+                user.virtualBalance += pnl;
+
+                // Create wallet transaction for P&L
+                await WalletTransaction.create({
+                  user: user._id,
+                  type: pnl >= 0 ? "deposit" : "withdrawal",
+                  amount: Math.abs(pnl),
+                  balanceAfter: user.virtualBalance,
+                  note: `Auto-close intraday position: ${holding.stock_symbol} - P&L: ₹${pnl.toFixed(2)}`
+                });
+
+                // Remove the holding
+                portfolio.holdings = portfolio.holdings.filter(
+                  h => h._id.toString() !== holding._id.toString()
+                );
+
+                console.log(`✅ Auto-closed ${holding.stock_symbol} for user ${user._id} - P&L: ₹${pnl.toFixed(2)}`);
+              }
+            }
+
+            await portfolio.save();
+            await user.save();
+          }
+
+          // Emit market status to all connected clients
+          io.emit("marketStatusChange", "closed");
+          io.emit("intradayPositionsClosed", {
+            message: "All intraday positions have been automatically closed at market close"
+          });
+        } catch (error) {
+          console.error("Error auto-closing intraday positions:", error);
+        }
       }
     );
 
@@ -218,6 +270,22 @@ const connectSocket = async (app) => {
           return;
         }
 
+        // Check market status
+        const marketStatus = await getMarketStatus();
+
+        // Prevent intraday, futures, and options trading when market is closed
+        if (marketStatus === "closed") {
+          if (order_category === "intraday" || order_category === "futures" || order_category === "options") {
+            socket.emit("error", `${order_category.toUpperCase()} trading is not allowed when market is closed. Market hours: 9:15 AM - 3:30 PM IST.`);
+            return;
+          }
+          // Delivery orders can be placed anytime but will execute when market opens
+          if (order_type === "market") {
+            socket.emit("error", "Market orders cannot be placed when market is closed. Please use limit orders or wait for market to open.");
+            return;
+          }
+        }
+
         const user = await User.findById(user_id);
         if (!user) {
           socket.emit("error", "User not found.");
@@ -239,6 +307,41 @@ const connectSocket = async (app) => {
           return;
         }
 
+        // Get portfolio before validation to check for sell orders
+        let portfolio = await Portfolio.findOne({ user_id });
+
+        // FIXED: Use 'type' instead of 'order_category' for buy/sell logic
+        if (type === "buy") {
+          // Calculate margin based on order category (intraday vs delivery)
+          const margin = order_category === "intraday"
+            ? execution_price * quantity * 0.2  // 20% margin for intraday
+            : execution_price * quantity;        // 100% for delivery
+
+          if (user.virtualBalance < margin) {
+            socket.emit("error", `Insufficient balance. Required: ₹${margin.toFixed(2)}, Available: ₹${user.virtualBalance.toFixed(2)}`);
+            return;
+          }
+          user.virtualBalance -= margin;
+        } else if (type === "sell") {
+          // Validate user owns the stock before selling
+          if (!portfolio) {
+            socket.emit("error", "No holdings found. Cannot sell stock you don't own.");
+            return;
+          }
+
+          const existingHolding = portfolio.holdings.find(
+            h => h.stock_symbol === stock_symbol && h.trade_type === "buy"
+          );
+
+          if (!existingHolding || existingHolding.quantity < quantity) {
+            socket.emit("error", `Insufficient stock quantity. You own ${existingHolding?.quantity || 0} shares, trying to sell ${quantity}.`);
+            return;
+          }
+
+          user.virtualBalance += execution_price * quantity;
+        }
+
+        // Create order record
         const newOrder = new Order({
           stock_symbol,
           order_type,
@@ -253,7 +356,7 @@ const connectSocket = async (app) => {
 
         await newOrder.save();
 
-        let portfolio = await Portfolio.findOne({ user_id });
+        // Update portfolio
         if (!portfolio) {
           portfolio = new Portfolio({
             user_id,
@@ -262,45 +365,46 @@ const connectSocket = async (app) => {
               quantity,
               average_price: execution_price,
               trade_type: type,
+              trade_category: order_category,
             }],
           });
         } else {
           const stockIndex = portfolio.holdings.findIndex(h => h.stock_symbol === stock_symbol && h.trade_type === type);
           if (stockIndex === -1) {
-            // Add as a new holding if trade_type differs
+            // Add as a new holding
             portfolio.holdings.push({
               stock_symbol,
               quantity,
               average_price: execution_price,
               trade_type: type,
+              trade_category: order_category,
             });
           } else {
             const currentHolding = portfolio.holdings[stockIndex];
             const newQuantity = currentHolding.quantity + quantity;
             const newAvgPrice = ((currentHolding.average_price * currentHolding.quantity) + (execution_price * quantity)) / newQuantity;
-            portfolio.holdings[stockIndex] = { ...currentHolding, quantity: newQuantity, average_price: newAvgPrice, stock_symbol: currentHolding.stock_symbol, trade_type: currentHolding.trade_type };
+            portfolio.holdings[stockIndex] = {
+              ...currentHolding,
+              quantity: newQuantity,
+              average_price: newAvgPrice,
+              stock_symbol: currentHolding.stock_symbol,
+              trade_type: currentHolding.trade_type,
+              trade_category: order_category,
+            };
           }
-        }
-
-        if (order_category === "buy") {
-          const totalCost = execution_price * quantity;
-          if (user.virtualBalance < totalCost) {
-            socket.emit("error", "Insufficient virtual balance.");
-            return;
-          }
-          user.virtualBalance -= totalCost;
-        } else if (order_category === "sell") {
-          user.virtualBalance += execution_price * quantity;
         }
 
         await portfolio.save();
         await user.save();
 
-        socket.emit("orderPlaced", { message: "Order placed successfully", order: newOrder });
+        socket.emit("orderPlaced", {
+          message: `${type.toUpperCase()} order placed successfully for ${quantity} shares of ${stock_symbol}`,
+          order: newOrder
+        });
         console.log("🚀 Order placed successfully:", newOrder);
       } catch (error) {
         console.error("Error placing order:", error);
-        socket.emit("error", "Error placing the order.");
+        socket.emit("error", "Error placing the order. Please try again.");
       }
     });
 
@@ -401,8 +505,6 @@ const connectSocket = async (app) => {
           return;
         }
 
-        console.log(trade_type)
-
         const stockIndex = portfolio.holdings.findIndex((stock) => stock.stock_symbol === stock_symbol && stock.trade_type === trade_type);
         if (stockIndex === -1) {
           socket.emit("error", "Stock not found in portfolio.");
@@ -416,9 +518,26 @@ const connectSocket = async (app) => {
           return;
         }
 
-        stock.quantity -= quantity;
-        user.virtualBalance += completion_price * quantity;
+        // Calculate P&L
+        const avgPrice = stock.average_price;
+        const pnl = trade_type === "buy"
+          ? (completion_price - avgPrice) * quantity
+          : (avgPrice - completion_price) * quantity;
 
+        // Update quantity and balance
+        stock.quantity -= quantity;
+        user.virtualBalance += (completion_price * quantity) + pnl;
+
+        // Create wallet transaction for the sale + P&L
+        await WalletTransaction.create({
+          user: user._id,
+          type: "deposit",
+          amount: (completion_price * quantity) + pnl,
+          balanceAfter: user.virtualBalance,
+          note: `Closed position: ${stock_symbol} - ${quantity} shares @ ₹${completion_price.toFixed(2)} | P&L: ₹${pnl.toFixed(2)}`
+        });
+
+        // Remove holding if quantity is 0
         if (stock.quantity === 0) {
           portfolio.holdings.splice(stockIndex, 1);
         }
@@ -435,14 +554,15 @@ const connectSocket = async (app) => {
         await user.save();
 
         socket.emit("orderCompleted", {
-          message: "Order completed successfully",
+          message: `Position closed successfully! P&L: ${pnl >= 0 ? '+' : ''}₹${pnl.toFixed(2)}`,
           stock_symbol,
           trade_type,
           quantity,
           completion_price,
+          pnl,
         });
 
-        console.log("✅ Order completed successfully:", { stock_symbol, trade_type, quantity, completion_price });
+        console.log(`✅ Order completed successfully:`, { stock_symbol, trade_type, quantity, completion_price, pnl });
       } catch (error) {
         console.error("Error completing order:", error);
         socket.emit("error", "Error completing the order.");
